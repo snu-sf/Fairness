@@ -1,8 +1,21 @@
 From sflib Require Import sflib.
 
+From iris.bi Require Import big_op.
 From Fairness Require Import PCM IPM IUpd.
 
 Set Implicit Arguments.
+
+Lemma nth_error_lookup {A} (l: list A) k :
+  nth_error (A:=A) l k = l !! k.
+Proof. revert k. induction l=> -[|k]; ss. Qed.
+
+Lemma In_elem_of_list {A} (l: list A) v :
+  In v l ↔ v ∈ l.
+Proof.
+  revert v. induction l as [|v' l IH]=> v; ss.
+  { rewrite elem_of_nil //. }
+  rewrite elem_of_cons IH (comm _ v) //.
+Qed.
 
 Section SUM.
   Context `{Σ: GRA.t}.
@@ -14,6 +27,11 @@ Section SUM.
     | hd::tl => P hd ∗ list_prop_sum P tl
     end.
 
+  Lemma list_prop_sum_big_op A (P: A -> iProp) l
+    :
+    list_prop_sum P l ⊣⊢ ([∗ list] a ∈ l, P a).
+  Proof. induction l as [|a l IH]; ss. rewrite IH //. Qed.
+
   Lemma list_prop_sum_wand (A: Type) (P0 P1 : A → iProp)
         (l: list A)
     :
@@ -22,24 +40,13 @@ Section SUM.
       (list_prop_sum (fun a => P0 a -∗ P1 a) l)
       -∗
       (list_prop_sum P1 l).
-  Proof.
-    induction l; ss.
-    { iIntros. auto. }
-    iIntros "[HD0 TL0] [HD1 TL1]". iSplitL "HD0 HD1".
-    { iApply ("HD1" with "HD0"). }
-    { iApply (IHl with "TL0 TL1"). }
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op. apply big_sepL_wand. Qed.
 
   Lemma list_prop_sum_perm A P (l0 l1: list A)
         (PERM: Permutation l0 l1)
     :
     list_prop_sum P l0 ⊢ list_prop_sum P l1.
-  Proof.
-    induction PERM; ss.
-    { iIntros "[H0 H1]". iFrame. iApply IHPERM. auto. }
-    { iIntros "[H0 [H1 H2]]". iFrame. }
-    { etrans; eauto. }
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op PERM //. Qed.
 
   Lemma list_prop_sum_nil A (P: A -> iProp)
     :
@@ -65,33 +72,21 @@ Section SUM.
     (list_prop_sum P (l0 ++ l1))
       ⊢
       (list_prop_sum P l0 ∗ list_prop_sum P l1).
-  Proof.
-    induction l0; ss.
-    { iIntros "SAT". iFrame. }
-    { iIntros "[INTERP SAT]". iFrame. iApply IHl0; auto. }
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op big_sepL_app //. Qed.
 
   Lemma list_prop_sum_combine A (P: A -> iProp) l0 l1
     :
     (list_prop_sum P l0 ∗ list_prop_sum P l1)
       ⊢
       (list_prop_sum P (l0 ++ l1)).
-  Proof.
-    induction l0; ss.
-    { iIntros "[_ SAT]". auto. }
-    { iIntros "[[INTERP SAT0] SAT1]". iFrame.
-      iApply IHl0. iFrame.
-    }
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op big_sepL_app //. Qed.
 
   Lemma list_prop_sum_add A (P: A -> iProp) l a
     :
     (P a ∗ list_prop_sum P l)
       ⊢
       (list_prop_sum P (l++[a])).
-  Proof.
-    iIntros "[NEW SAT]". iApply list_prop_sum_combine. iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op big_sepL_snoc (comm (∗)%I) //. Qed.
 
   Lemma list_prop_sum_impl A (P0 P1: A -> iProp) l
         (IMPL: forall a, P0 a ⊢ P1 a)
@@ -99,12 +94,7 @@ Section SUM.
     (list_prop_sum P0 l)
       ⊢
       (list_prop_sum P1 l).
-  Proof.
-    induction l; ss.
-    iIntros "[HD TL]". iSplitL "HD".
-    { iApply (IMPL with "HD"). }
-    { iApply (IHl with "TL"). }
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op. by setoid_rewrite IMPL. Qed.
 
   Lemma list_prop_sum_impl_in A (P0 P1: A -> iProp) l
         (IMPL: forall a (IN: In a l), P0 a ⊢ P1 a)
@@ -113,11 +103,8 @@ Section SUM.
       ⊢
       (list_prop_sum P1 l).
   Proof.
-    induction l; ss.
-    iIntros "[HD TL]".
-    iSplitL "HD".
-    { iApply (IMPL with "HD"). auto. }
-    { iApply (IHl with "TL"). eauto. }
+    rewrite !list_prop_sum_big_op. apply big_sepL_mono.
+    ii. by eapply IMPL, In_elem_of_list, elem_of_list_lookup_2.
   Qed.
 
   Lemma list_prop_sum_sepconj A (P0 P1: A -> iProp) l
@@ -125,20 +112,14 @@ Section SUM.
     ((list_prop_sum P0 l) ∗ (list_prop_sum P1 l))
       ⊢
       list_prop_sum (fun a => (P0 a) ∗ (P1 a)) l.
-  Proof.
-    induction l; ss; auto.
-    iIntros "[[HD1 TL1] [HD2 TL2]]". iFrame. iApply IHl. iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op big_sepL_sep //. Qed.
 
   Lemma list_prop_sepconj_sum A (P0 P1: A -> iProp) l
     :
     (list_prop_sum (fun a => (P0 a) ∗ (P1 a)) l)
       ⊢
       ((list_prop_sum P0 l) ∗ (list_prop_sum P1 l)).
-  Proof.
-    induction l; ss; auto.
-    iIntros "[[HD1 HD2] TL]". iFrame. iApply IHl. iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op big_sepL_sep //. Qed.
 
   Lemma list_prop_sum_impl2 A (P0 P1 Q: A -> iProp) l
         (IMPL: forall a, (P0 a ∗ P1 a) -∗ Q a)
@@ -147,27 +128,19 @@ Section SUM.
       -∗
       list_prop_sum Q l.
   Proof.
-    iIntros "SUMs". iApply list_prop_sum_impl. 2: iApply list_prop_sum_sepconj; iFrame.
-    i. ss. iApply IMPL.
+    rewrite !list_prop_sum_big_op -big_sepL_sep.
+    iApply big_sepL_mono. ii. iApply IMPL.
   Qed.
 
   Lemma list_prop_sum_persistent A (P: A -> iProp) l
         (PERSIST: forall a, Persistent (P a))
     :
     (list_prop_sum P l) -∗ (□ list_prop_sum P l).
-  Proof.
-    induction l.
-    { iIntros "_". ss. }
-    ss. iIntros "[#$ Ps]".
-    iApply IHl; iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op. iIntros "#$". Qed.
 
-  Global Program Instance Persistent_list_prop_sum
+  Global Instance Persistent_list_prop_sum
          A (P: A -> iProp) l (PERSIST: forall a, Persistent (P a)) : Persistent (list_prop_sum P l).
-  Next Obligation.
-  Proof.
-    intros. iIntros "Ps". iPoseProof (list_prop_sum_persistent with "Ps") as "Ps". auto.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op. apply _. Qed.
 
   Lemma list_map_forall2 A B (f: A -> B)
         l
@@ -189,10 +162,13 @@ Section SUM.
       ⊢
       (list_prop_sum Q lb).
   Proof.
-    revert IMPL. induction FORALL; i; ss.
-    iIntros "[HD TL]". iSplitL "HD".
-    { iApply (IMPL with "HD"); auto. }
-    { iApply (IHFORALL with "TL"). auto. }
+    rewrite !list_prop_sum_big_op -(big_sepL_fmap _ (λ _ x, x) la)
+      -(big_sepL_fmap _ (λ _ x, x) lb).
+    apply big_sepL_id_mono', Forall2_fmap_2, Forall2_same_length_lookup_2.
+    { eapply Forall2_length, FORALL. }
+    ii. apply IMPL.
+    1,2: by eapply In_elem_of_list, elem_of_list_lookup_2.
+    eapply Forall2_lookup_lr; done.
   Qed.
 
   Lemma list_prop_sum_or_cases_l
@@ -217,8 +193,8 @@ Section SUM.
       -∗
       ((list_prop_sum P1 l) ∨ (∃ a, (⌜List.In a l⌝) ∗ (P0 a))).
   Proof.
-    iIntros "SUM". iApply list_prop_sum_or_cases_l. iApply list_prop_sum_impl. 2: iFrame.
-    i. iIntros "[C0|C1]"; iFrame.
+    iIntros "SUM". iApply list_prop_sum_or_cases_l.
+    rewrite !list_prop_sum_big_op. by iEval (setoid_rewrite (comm (∨)%I)).
   Qed.
 
   Lemma list_prop_sum_pull_bupd
@@ -228,11 +204,7 @@ Section SUM.
     (list_prop_sum (fun a => #=( Q )=> P a) l)
       -∗
       #=( Q )=>(list_prop_sum P l).
-  Proof.
-    induction l.
-    { iIntros "_". ss. }
-    ss. iIntros "[PA SUM]". iSplitL "PA"; iFrame. iApply IHl. iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op !big_sepL_bupd. iIntros "$". Qed.
 
   Lemma list_prop_sum_pull_bupd_default
         A (P: A -> iProp) l
@@ -240,11 +212,7 @@ Section SUM.
     (list_prop_sum (fun a => #=> P a) l)
       -∗
       #=>(list_prop_sum P l).
-  Proof.
-    induction l.
-    { iIntros "_". ss. }
-    ss. iIntros "[PA SUM]". iSplitL "PA"; iFrame. iApply IHl. iFrame.
-  Qed.
+  Proof. rewrite !list_prop_sum_big_op !big_sepL_bupd. iIntros "$". Qed.
 
   Lemma list_prop_sum_in_split
         A (P: A -> iProp) l a
@@ -253,15 +221,9 @@ Section SUM.
     (list_prop_sum (fun a => P a) l)
       -∗ ((P a) ∗ ((P a) -∗ (list_prop_sum (fun a => P a) l))).
   Proof.
-    iIntros "SUM". apply in_split in IN. des. rewrite cons_middle in IN. clarify.
-    iPoseProof (list_prop_sum_split with "SUM") as "[SL SR]".
-    iPoseProof (list_prop_sum_split with "SR") as "[SM SR]".
-    iSplitL "SM". ss. iDestruct "SM" as "[PA _]". iFrame.
-    iIntros "PA".
-    iAssert (list_prop_sum (fun a0 => P a0) (a :: (l1 ++ l2)))%I with "[SL SR PA]" as "SP".
-    { ss. iFrame. iApply list_prop_sum_combine. iFrame. }
-    iApply (list_prop_sum_perm with "SP"). rewrite app_assoc. rewrite app_comm_cons.
-    apply Permutation_app_tail. apply Permutation_cons_append.
+    apply In_elem_of_list, elem_of_list_lookup_1 in IN as [k In].
+    rewrite !list_prop_sum_big_op.
+    by iApply big_sepL_lookup_acc.
   Qed.
 
   Lemma list_prop_sum_map
@@ -274,10 +236,9 @@ Section SUM.
       ⊢
       (list_prop_sum P1 (List.map f l)).
   Proof.
-    induction l; ss.
-    iIntros "[HD TL]". iSplitL "HD".
-    { iApply (MAP with "HD"). }
-    { iApply (IHl with "TL"). }
+    rewrite !list_prop_sum_big_op big_sepL_fmap.
+    apply big_sepL_mono.
+    ii. iApply MAP.
   Qed.
 
   Lemma list_prop_sum_map_inv
@@ -290,9 +251,8 @@ Section SUM.
       ⊢
     (list_prop_sum P0 l).
   Proof.
-    induction l; ss.
-    iIntros "[HD TL]". iSplitL "HD".
-    { iApply (MAP with "HD"). }
-    { iApply (IHl with "TL"). }
+    rewrite !list_prop_sum_big_op big_sepL_fmap.
+    apply big_sepL_mono.
+    ii. iApply MAP.
   Qed.
 End SUM.
