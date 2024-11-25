@@ -81,14 +81,12 @@ Module OneShotP.
 
   Definition shot `{@GRA.inG (OneShot.t A) Σ} a : iProp Σ := OwnM (OneShot.shot a).
 
-  Global Program Instance shot_persistent (A: Type)
+  Global Instance shot_persistent (A: Type)
          `{@GRA.inG (OneShot.t A) Σ}
          (a: A)
     :
     Persistent (shot a).
-  Next Obligation.
-    i. iIntros "H". iPoseProof (OwnM_persistently with "H") as "# G". ss.
-  Qed.
+  Proof. apply _. Qed.
 
   Lemma shot_agree (A: Type)
         `{@GRA.inG (OneShot.t A) Σ}
@@ -99,7 +97,7 @@ Module OneShotP.
       (⌜a0 = a1⌝).
   Proof.
     iIntros "[# H0 # H1]".
-    iCombine "H0 H1" as "H". iOwnWf "H". apply OneShot.shot_agree in H0. auto.
+    by iCombine "H0 H1" gives %->%OneShot.shot_agree.
   Qed.
 
   Lemma pending_not_shot (A: Type)
@@ -111,18 +109,15 @@ Module OneShotP.
       False.
   Proof.
     iIntros "[H0 # H1]".
-    iCombine "H0 H1" as "H". iOwnWf "H". apply OneShot.pending_not_shot in H0. auto.
+    by iCombine "H0 H1" gives %?%(OneShot.pending_not_shot (A:=A)).
   Qed.
 
-  Global Program Instance shot_persistent_singleton (A: Type)
+  Global Instance shot_persistent_singleton (A: Type)
          `{@GRA.inG (@FiniteMap.t (OneShot.t A)) Σ}
          k (a: A)
     :
     Persistent (OwnM (FiniteMap.singleton k (OneShot.shot a))).
-  Next Obligation.
-    i. iIntros "H". iPoseProof (OwnM_persistently with "H") as "# G".
-    rewrite FiniteMap.singleton_core_total. ss.
-  Qed.
+  Proof. apply _. Qed.
 
   Lemma shot_agree_singleton (A: Type)
         `{@GRA.inG (@FiniteMap.t (OneShot.t A)) Σ}
@@ -132,10 +127,10 @@ Module OneShotP.
       -∗
       (⌜a0 = a1⌝).
   Proof.
-    iIntros "[# H0 # H1]".
-    iCombine "H0 H1" as "H". iOwnWf "H".
-    apply FiniteMap.singleton_wf in H0.
-    apply OneShot.shot_agree in H0. auto.
+    iIntros "[# H0 # H1]". unfold FiniteMap.singleton.
+    iCombine "H0 H1" gives %WF.
+    rewrite FiniteMap.singleton_add in WF.
+    by apply FiniteMap.singleton_wf, OneShot.shot_agree in WF.
   Qed.
 
   Lemma pending_not_shot_singleton (A: Type)
@@ -147,9 +142,9 @@ Module OneShotP.
       False.
   Proof.
     iIntros "[H0 # H1]".
-    iCombine "H0 H1" as "H". iOwnWf "H".
-    apply FiniteMap.singleton_wf in H0.
-    apply OneShot.pending_not_shot in H0. auto.
+    iCombine "H0 H1" gives %WF.
+    rewrite FiniteMap.singleton_add in WF.
+    by apply FiniteMap.singleton_wf, OneShot.pending_not_shot in WF.
   Qed.
 
 Global Opaque shot pending.

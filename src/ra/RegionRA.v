@@ -62,7 +62,7 @@ Module Region.
     Context {A: Type}.
     Notation t := (t A).
     Context `{@GRA.inG t Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition to_black (l : list A) : t :=
       (fun n =>
@@ -479,7 +479,7 @@ Module Regions.
     Notation t := (t As).
 
     Context `{@GRA.inG t Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Section SINGLE.
 
@@ -896,7 +896,7 @@ Module Regions.
     Variable As : nat -> Type.
     Context `{Σ: GRA.t}.
     Context `{@GRA.inG (@t nat As) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Variable interps : forall i, As i -> iProp.
 

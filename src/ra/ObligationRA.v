@@ -173,6 +173,9 @@ Module CounterRA.
     Definition white (a: A): t :=
       mk_car (partition_top, Fuel.from_monoid a).
 
+    Global Instance black_core_id a : CoreId (black a).
+    Proof. rewrite core_id_total_L. ss. Qed.
+
     Lemma black_persistent a
       :
       cmra.core (black a) = black a.
@@ -312,7 +315,7 @@ Module ObligationRA.
 
   Section RA.
     Context `{@GRA.inG t Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition black (k: nat) (o: Ord.t): iProp :=
       OwnM (FiniteMap.singleton k ((CounterRA.black o: @CounterRA.t Ord.t _, ε: OneShot.t _unit): prodUR (@CounterRA.t Ord.t _) (OneShot.t _unit))).
@@ -330,35 +333,11 @@ Module ObligationRA.
     Definition white_one k: iProp :=
       white k (Ord.S Ord.O).
 
-    Lemma black_persistent k o
-      :
-      black k o -∗ □ black k o.
-    Proof.
-      iIntros "H".
-      unfold black.
-      iPoseProof (own_persistent with "H") as "H".
-      rewrite FiniteMap.singleton_core_total. auto.
-    Qed.
-
     Global Instance Persistent_black k o: Persistent (black k o).
-    Proof.
-      rewrite /Persistent. iIntros "POS". iPoseProof (black_persistent with "POS") as "POS". auto.
-    Qed.
-
-    Lemma shot_persistent k
-      :
-      shot k -∗ □ shot k.
-    Proof.
-      iIntros "H".
-      unfold black.
-      iPoseProof (own_persistent with "H") as "H".
-      rewrite FiniteMap.singleton_core_total. auto.
-    Qed.
+    Proof. apply _. Qed.
 
     Global Instance Persistent_shot k: Persistent (shot k).
-    Proof.
-      rewrite /Persistent. iIntros "POS". ss. iPoseProof (shot_persistent with "POS") as "POS". auto.
-    Qed.
+    Proof. apply _. Qed.
 
     Lemma pending_shot k
       :
@@ -380,11 +359,9 @@ Module ObligationRA.
         -∗
         False.
     Proof.
-      iIntros "H0 H1". iCombine "H0 H1" as "H".
-      iOwnWf "H".
-      rewrite FiniteMap.singleton_wf in H0.
-      rewrite pair_valid Some_valid in H0.
-      des. exfalso. apply OneShot.pending_not_shot in H1. eauto.
+      iIntros "H0 H1". iCombine "H0 H1" gives %WF.
+      rewrite FiniteMap.singleton_add FiniteMap.singleton_wf pair_valid Some_valid in WF.
+      des. exfalso. apply OneShot.pending_not_shot in WF0. eauto.
     Qed.
 
     Lemma pending_sum k q0 q1
@@ -406,10 +383,10 @@ Module ObligationRA.
         -∗
         (⌜(q ≤ 1)%Qp⌝).
     Proof.
-      iIntros "H". iOwnWf "H".
-      rewrite FiniteMap.singleton_wf in H0.
-      rewrite pair_valid in H0. des.
-      apply OneShot.pending_wf in H1. auto.
+      iIntros "H".
+      iDestruct (OwnM_valid with "H") as %?.
+      rewrite FiniteMap.singleton_wf pair_valid in H0.
+      des. apply OneShot.pending_wf in H1. auto.
     Qed.
 
     Lemma pending_split k q0 q1
@@ -419,22 +396,20 @@ Module ObligationRA.
         (pending k q0 ∗ pending k q1).
     Proof.
       iIntros "H".
-      iPoseProof (OwnM_extends with "H") as "[H0 H1]"; [|iSplitL "H0"; [iApply "H0"|iApply "H1"]].
-      { rewrite FiniteMap.singleton_add.
-        rewrite OneShot.pending_sum -pair_op.
-        rewrite right_id. reflexivity.
-      }
+      iDestruct (OwnM_extends with "H") as "[$ $]".
+      rewrite FiniteMap.singleton_add OneShot.pending_sum -pair_op right_id.
+      reflexivity.
     Qed.
 
     Lemma alloc o
       :
       ⊢ #=> (∃ k, black k o ∗ white k o ∗ pending k 1).
     Proof.
-      iPoseProof (@OwnM_unit _ _ H) as "H".
-      iPoseProof (OwnM_Upd_set with "H") as "> H0".
+      iDestruct (OwnM_unit (M:=t) emp with "[//]") as "H".
+      iMod (OwnM_Upd_set with "H") as "H0".
       { eapply FiniteMap.singleton_alloc.
-        instantiate (1:=((CounterRA.black o, ε): prodUR (@CounterRA.t Ord.t _) (OneShot.t _unit)) ⋅ ((CounterRA.white o, ε): prodUR (@CounterRA.t Ord.t _) (OneShot.t _unit)) ⋅ (ε, OneShot.pending _unit 1)).
-        repeat rewrite -!pair_op /=. repeat rewrite left_id. repeat rewrite right_id.
+        instantiate (1:=(CounterRA.black o, ε) ⋅ (CounterRA.white o, ε) ⋅ (ε, OneShot.pending _unit 1)).
+        rewrite -!pair_op /= left_id right_id.
         rewrite pair_valid. split.
         { eapply CounterRA.black_white_wf. }
         { apply OneShot.pending_one_wf. }
@@ -550,8 +525,9 @@ Module ObligationRA.
         ⌜Ord.le o1 o0⌝.
     Proof.
       iIntros "H0 H1".
-      iCombine "H0 H1" as "H".
-      iOwnWf "H". iPureIntro.
+      iCombine "H0 H1" gives %H0.
+      iPureIntro.
+      rewrite FiniteMap.singleton_add in H0.
       apply FiniteMap.singleton_wf in H0.
       rewrite pair_valid in H0. des. ss.
       apply CounterRA.black_white_compare in H0. auto.
@@ -568,18 +544,11 @@ Module ObligationRA.
       iIntros "H0 H1".
       iCombine "H0 H1" as "H".
       iMod (OwnM_Upd_set with "H") as (?) "[Hb H]".
-      { eapply FiniteMap.singleton_updatable_set.
-        eapply prod_updateP.
+      { eapply singleton_updateP', prod_updateP'.
         { eapply CounterRA.black_white_decr. }
-        { instantiate (1:=eq (ε ⋅ ε: OneShot.t _unit)). ii. esplits; eauto. }
-        intros. subst. rewrite right_id.
-        instantiate (1:= (λ r,
-        ∃ a2 : Ord.t,
-          r.1 = CounterRA.black a2 ∧ r.2 = ε
-          ∧ OrderedCM.le (OrderedCM.add a2 o1) o0)).
-        simpl in *. des. eauto.
+        { eapply cmra_update_updateP. simpl. reflexivity. }
       }
-      { ss. iDestruct "Hb" as %?. des. destruct m1. simpl in *. des; subst.
+      { ss. iDestruct "Hb" as ([]) "%". des. simpl in *. des; subst.
         iModIntro. iExists _. simpl in *. iFrame "H". eauto. }
     Qed.
 
@@ -592,10 +561,10 @@ Module ObligationRA.
         (#=> ∃ o0, black k o0 ∗ ⌜Ord.lt o0 o1⌝).
     Proof.
       iIntros "H0 H1".
-      iPoseProof (black_white_decr with "H0 H1") as "> [% [H %]]".
+      iMod (black_white_decr with "H0 H1") as (?) "[H %]".
       iModIntro. iExists _. iFrame. iPureIntro.
       eapply Ord.lt_le_lt; eauto.
-      rewrite Hessenberg.add_S_r. rewrite Hessenberg.add_O_r.
+      rewrite Hessenberg.add_S_r Hessenberg.add_O_r.
       apply Ord.S_lt; auto.
     Qed.
 
@@ -609,8 +578,8 @@ Module ObligationRA.
         (#=> ∃ o_b0, black k o_b0 ∗ white k o_w0 ∗ ⌜Ord.lt o_b0 o_b1⌝).
     Proof.
       iIntros "H0 H1".
-      iPoseProof (white_split_one with "H1") as "> [H1 H2]"; [eauto|].
-      iPoseProof (black_white_decr_one with "H0 H2") as "> [% [H0 %]]".
+      iMod (white_split_one with "H1") as "[H1 H2]"; [eauto|].
+      iMod (black_white_decr_one with "H0 H2") as (?) "[H0 %]".
       iModIntro. iExists _. iFrame. auto.
     Qed.
 
@@ -621,7 +590,7 @@ Module ObligationRA.
     Context `{Σ: GRA.t}.
     Context `{@GRA.inG t Σ}.
     Context `{@GRA.inG (Region.t (nat * nat * Ord.t)) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition edge: (nat * nat * Ord.t) -> iProp :=
       fun '(k0, k1, c) => (∃ o, black k0 o ∗ white k1 (Jacobsthal.mult c o))%I.
@@ -638,7 +607,8 @@ Module ObligationRA.
       iIntros "# H". auto.
     Qed.
 
-    Global Program Instance Persistent_amplifier k0 k1 c: Persistent (amplifier k0 k1 c).
+    Global Instance Persistent_amplifier k0 k1 c: Persistent (amplifier k0 k1 c).
+    Proof. apply _. Qed.
 
     Lemma amplifier_mon k0 k1 c0 c1
           (LE: Ord.le c0 c1)
@@ -646,10 +616,10 @@ Module ObligationRA.
       amplifier k0 k1 c1 ⊢ amplifier k0 k1 c0.
     Proof.
       iIntros "# H". iModIntro. iIntros "% WHITE".
-      iPoseProof ("H" with "WHITE") as "> WHITE".
-      iPoseProof (white_mon with "WHITE") as "> WHITE".
-      {  eapply Jacobsthal.le_mult_l. eauto. }
-      iModIntro. auto.
+      iMod ("H" with "WHITE") as "WHITE".
+      iMod (white_mon with "WHITE") as "$".
+      { by apply Jacobsthal.le_mult_l. }
+      done.
     Qed.
 
     Lemma amplifier_trans k0 k1 k2 c0 c1
@@ -661,10 +631,10 @@ Module ObligationRA.
         (amplifier k0 k2 (Jacobsthal.mult c1 c0)).
     Proof.
       iIntros "# H0 # H1". iModIntro. iIntros "% WHITE".
-      iPoseProof ("H0" with "WHITE") as "> WHITE".
-      iPoseProof ("H1" with "WHITE") as "> WHITE".
-      iPoseProof (white_mon with "WHITE") as "> WHITE".
-      { rewrite <- ClassicJacobsthal.mult_assoc. reflexivity. }
+      iMod ("H0" with "WHITE") as "WHITE".
+      iMod ("H1" with "WHITE") as "WHITE".
+      iMod (white_mon with "WHITE") as "$".
+      { rewrite -ClassicJacobsthal.mult_assoc. reflexivity. }
       iModIntro. auto.
     Qed.
 
@@ -676,8 +646,7 @@ Module ObligationRA.
         -∗
         (#=(edges_sat)=> white k1 (Jacobsthal.mult c o)).
     Proof.
-      iIntros "H0 H1".
-      iPoseProof ("H0" with "H1") as "> H". iModIntro. auto.
+      iIntros "H0 H1". iMod ("H0" with "H1") as "$". done.
     Qed.
 
     Lemma amplifier_intro k0 k1 c o
@@ -689,18 +658,16 @@ Module ObligationRA.
         (#=(edges_sat)=> amplifier k0 k1 c).
     Proof.
       iIntros "BLACK WHITE".
-      iPoseProof (Region.alloc with "[BLACK WHITE]") as "H".
-      { instantiate (1:=(k0, k1, c)). instantiate (1:=edge).
-        ss. iExists _.
-        iFrame "BLACK". iFrame.
-      }
-      iMod "H" as "[% # H]". iModIntro.
+      iMod (Region.alloc edge (_,_,_) with "[BLACK WHITE]") as "[% # H]".
+      { iExists _. iFrame. }
+      iModIntro.
       unfold amplifier. iModIntro. iIntros "% WHITE".
       iApply (Region.update with "H [WHITE]").
       rewrite IUpd_eq. iIntros "[% [H0 H1]]".
       iPoseProof (black_white_decr with "H0 WHITE") as "> [% [H0 %]]".
       iPoseProof (white_mon with "H1") as "> H1".
-      { rewrite <- Jacobsthal.le_mult_r; [|eauto].
+      { (* FIXME: ssreflect rewrite doesn't work. *)
+        rewrite <-Jacobsthal.le_mult_r; [|eauto].
         rewrite ClassicJacobsthal.mult_dist. reflexivity.
       }
       iPoseProof (white_split_eq with "H1") as "[H1 H2]".
@@ -719,7 +686,7 @@ Module ObligationRA.
     Context `{Vars : index -> Type}.
     Context `{Invs : @IInvSet Σ Vars}.
     Context `{GRA.inG (Regions.t (fun l => (S * nat * Ord.t * Qp * nat * (Vars l))%type)) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Section PRISM.
 
@@ -756,9 +723,9 @@ Module ObligationRA.
       auto.
     Qed.
 
-    Global Program Instance Persistent_delay i k c F: Persistent (delay i k c F).
+    Global Instance Persistent_delay i k c F: Persistent (delay i k c F).
+    Proof. apply _. Qed.
 
-    Local Transparent IUpd.
 
     Lemma delay_shot i k c F
       :
@@ -794,7 +761,8 @@ Module ObligationRA.
       iIntros "# H". auto.
     Qed.
 
-    Global Program Instance Persistent_correl i k c F: Persistent (correl i k c F).
+    Global Instance Persistent_correl i k c F: Persistent (correl i k c F).
+    Proof. apply _. Qed.
 
     Lemma delay_to_correl i k c F
       :
@@ -1060,7 +1028,7 @@ Module ObligationRA.
       { rewrite IUpd_eq. iIntros "[#PERS [(PEND & _) | (_ & [[DONE _]|[% [BLACK WHITE]]])]]".
         { iPoseProof (pending_not_shot with "PEND SHOT") as "%FAL". inv FAL. }
         { iCombine "OWN DONE" as "FALSE".
-          iOwnWf "FALSE" as F.
+          iDestruct (OwnM_valid with "FALSE") as %F.
           rewrite FiniteMap.singleton_wf in F.
           apply OneShot.pending_not_shot in F. ss.
         }
@@ -1090,7 +1058,7 @@ Module ObligationRA.
       iIntros "[% [% [BLACK [DUTY %]]]] SHOT PEND #PERS".
       iPoseProof (FairRA.black_ex_split with "[BLACK]") as "[BLACK0 [% BLACK1]]".
       { erewrite Qp.div_2. iFrame. }
-      iPoseProof (@OwnM_ura_unit (@FiniteMap.t (OneShot.t _unit))) as "H".
+      iPoseProof (OwnM_unit (M:=FiniteMap.t (OneShot.t _unit)) emp with "[//]") as "H".
       iMod (OwnM_Upd_set with "H") as (?) "[Hb OWN]".
       { eapply FiniteMap.singleton_alloc. eapply OneShot.pending_one_wf. }
       ss. iDestruct "Hb" as %?. des. rewrite H4.
@@ -1574,7 +1542,8 @@ Module ObligationRA.
         hexploit H3; eauto. i. clarify.
         iPoseProof ("OWN0" $! _ _ _ _ _ _ a2) as "OWN0".
         iPoseProof ("OWN1" $! _ _ _ _ _ _ a3) as "OWN1".
-        iCombine "OWN0 OWN1" as "OWN". iOwnWf "OWN".
+        iCombine "OWN0 OWN1" gives %H4.
+        rewrite FiniteMap.singleton_add in H4.
         apply FiniteMap.singleton_wf in H4.
         rewrite -OneShot.pending_sum in H4.
         apply OneShot.pending_wf in H4. apply Qp.not_add_le_r in H4. ss.
@@ -1616,11 +1585,11 @@ Module ObligationRA.
             des; clarify. iApply "IHrs"; eauto.
           }
         }
-        iCombine "PENDING OWN1" as "OWN". iOwnWf "OWN".
-        exfalso.
-        apply gmap.singleton_valid in H4.
-        rewrite -OneShot.pending_sum in H4.
-        apply OneShot.pending_wf in H4. apply Qp.not_add_le_r in H4. ss.
+        iCombine "PENDING OWN1" gives %WF.
+        exfalso. clear -WF.
+        rewrite singleton_op -OneShot.pending_sum in WF.
+        apply singleton_valid, OneShot.pending_wf in WF.
+        apply Qp.not_add_le_r in WF. ss.
       }
       iSplitL "H".
       { eauto. }
@@ -1664,9 +1633,10 @@ Module ObligationRA.
           iSplitR "BLACK PEND PERSS".
           { iApply (duty_list_fold with "DUTY WHITE OWN"). }
           { iFrame. auto. }
-        - iExFalso. iCombine "OWN SHOT" as "OWN". iOwnWf "OWN".
-          apply FiniteMap.singleton_wf in H3.
-          apply OneShot.pending_not_shot in H3. ss.
+        - iExFalso. iCombine "OWN SHOT" gives %WF.
+          exfalso.
+          rewrite singleton_op in WF.
+          apply singleton_valid, OneShot.pending_not_shot in WF. ss.
         - iPoseProof (IHrs with "[DUTY BLACK BLACK1 SATS]") as "[DUTY [BLACK PERSS]]".
           { iSplitL "DUTY"; [eauto|]. iSplitL "BLACK BLACK1"; [|auto].
             iApply (FairRA.black_ex_sum with "BLACK"). iExists _. iFrame.
@@ -1692,8 +1662,8 @@ Module ObligationRA.
         { clear IHrs. revert q q0. induction rs; ss; i.
           { apply Qp.add_comm. }
           { destruct a0 as [? [[[[? ?] ?] ?] ?]].
-            rewrite (IHrs q1 q0). rewrite (IHrs q1 q).
-            rewrite Qp.add_assoc. rewrite Qp.add_assoc.
+            rewrite (IHrs q1 q0) (IHrs q1 q).
+            rewrite !Qp.add_assoc.
             f_equal. apply Qp.add_comm.
           }
         }
@@ -1709,7 +1679,7 @@ Module ObligationRA.
         iFrame. iSplitR. auto. iDestruct "CASE" as "[PEND | #SHOTk]".
         - iLeft. iFrame. iModIntro. iExists _. iFrame.
         - iRight. iSplitR. iModIntro; auto. iRight. iExists _. iFrame. iApply (white_mon with "WHITE").
-          apply Jacobsthal.le_mult_r. eapply Ord.lt_le. eapply Ord.omega_upperbound.
+          apply Jacobsthal.le_mult_r, Ord.lt_le, Ord.omega_upperbound.
       }
     Qed.
 
@@ -1938,20 +1908,21 @@ Module ObligationRA.
           iSplitR "BLACK PEND WH PERSS".
           { iApply (duty_list_fold with "DUTY WHITE OWN"). }
           { iFrame. iSplitR. auto. iLeft. iFrame. }
-        - iExFalso. iCombine "OWN SHOT" as "OWN". iOwnWf "OWN".
-          apply FiniteMap.singleton_wf in H3.
-          apply OneShot.pending_not_shot in H3. ss.
+        - iExFalso. iCombine "OWN SHOT" as "OWN".
+          iDestruct (OwnM_valid with "OWN") as
+            %[]%FiniteMap.singleton_wf%OneShot.pending_not_shot.
         - iPoseProof (IHrs with "[DUTY BLACK BLACK1 SATS]") as "[DUTY [BLACK PERSS]]".
-          { iSplitL "DUTY"; [eauto|]. iSplitL "BLACK BLACK1"; [|auto].
-            iApply (FairRA.black_ex_sum with "BLACK"). iExists _. iFrame.
+          { iFrame "DUTY SATS".
+            iDestruct (FairRA.black_ex_sum with "BLACK [BLACK1]") as "$".
+            iExists _. iFrame.
           }
           iSplitR "BLACK PERSS".
           { iApply (duty_list_fold with "DUTY WHITE OWN"). }
           { iFrame. auto. }
       }
-      iModIntro. iSplitL "BLACK"; [auto|].
-      iAssert (⌜(fold_right (fun '(r, (k, c, q0, x, f)) q1 => (q0 + q1)%Qp) q rs = 1%Qp)⌝)%I as "%".
-      { iPoseProof "DUTY" as "[DUTY %]". auto. }
+      iModIntro. iFrame "BLACK".
+      iAssert (⌜(fold_right (fun '(r, (k, c, q0, x, f)) q1 => (q0 + q1)%Qp) q rs = 1%Qp)⌝)%I as %?.
+      { iDestruct "DUTY" as "[_ $]". }
       iIntros "[% BLACK]".
       iAssert (#=> ((Region.sat_list
                        arrow
@@ -1991,9 +1962,9 @@ Module ObligationRA.
         - iDestruct "CASE" as "[(PEND & WHI) | #SHOTk]".
           + iSplitL; [|auto]. iSplitR; [auto|]. iLeft. iFrame. iModIntro. iExists _. iFrame.
           + iSplitL; [|auto]. iSplitR; [auto|].
-            iRight. iSplitR. iModIntro; auto. subst.
+            iRight. iSplitR. { iModIntro; auto. } subst.
             iRight. iExists _. iFrame. iApply (white_mon with "WHITE").
-            apply Jacobsthal.le_mult_r. eapply Ord.lt_le. eapply Ord.omega_upperbound.
+            apply Jacobsthal.le_mult_r, Ord.lt_le, Ord.omega_upperbound.
       }
     Qed.
 
@@ -2263,7 +2234,7 @@ Module ObligationRA.
     Context `{Vars : index -> Type}.
     Context `{Invs : @IInvSet Σ Vars}.
     Context `{@GRA.inG (@Regions.t _ (fun l => ((sum_tid S) * nat * Ord.t * Qp * nat * (Vars l))%type)) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition delay_thread v (k: nat) (c: Ord.t) (f : Vars v): iProp :=
       ∃ i, delay v inlp i k c f.
@@ -2275,7 +2246,8 @@ Module ObligationRA.
       iIntros "# H". auto.
     Qed.
 
-    Global Program Instance Persistent_delay_thread v k c f: Persistent (@delay_thread v k c f).
+    Global Instance Persistent_delay_thread v k c f: Persistent (@delay_thread v k c f).
+    Proof. apply _. Qed.
 
     Definition correl_thread v (k: nat) (c: Ord.t) (f : Vars v): iProp :=
       ∃ i, correl v inlp i k c f.
@@ -2287,7 +2259,8 @@ Module ObligationRA.
       iIntros "# H". auto.
     Qed.
 
-    Global Program Instance Persistent_correl_thread v k c f: Persistent (@correl_thread v k c f).
+    Global Instance Persistent_correl_thread v k c f: Persistent (@correl_thread v k c f).
+    Proof. apply _. Qed.
 
     Lemma delay_thread_shot v k c F
       :
@@ -2387,7 +2360,7 @@ Module ObligationRA.
     Context `{Vars : index -> Type}.
     Context `{Invs : @IInvSet Σ Vars}.
     Context `{@GRA.inG (@Regions.t _ (fun l => (Id * nat * Ord.t * Qp * nat * (Vars l))%type)) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Lemma IUpd_open (I P : iProp)
       :

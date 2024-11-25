@@ -124,13 +124,13 @@ Module Client04Correct.
         }
       }
     }
-    unfold init_res. repeat rewrite <- GRA.embed_add.
+    unfold init_res.
     exists 2, 1. exists. lia.
     eexists _. iIntros "(A & INIT)".
-    iPoseProof (init_sat with "[A INIT]") as "RES".
-    { instantiate (1:=1). instantiate (1:=0). ss. }
-    { simpl. rewrite Own_op. iDestruct "A" as "[A B]". iSplitL "A"; iFrame. unfold AuthExcls.rest_gt. iExists 0.
-      unfold AuthExcls.rest. done.
+    iPoseProof (init_sat 0 1 with "[A $INIT]") as "RES".
+    { ss. }
+    { rewrite OwnM_uPred_ownM_eq. iDestruct "A" as "[$ B]". iExists 0.
+      rewrite /AuthExcls.rest OwnM_uPred_ownM_eq. iFrame.
     }
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
     iDestruct "RES" as "(% & % & % & % & % & % & % & #INV1 & TGTST & T1 & T2)".

@@ -147,9 +147,10 @@ Module ClientCorrect.
     unfold init_res. repeat rewrite <- GRA.embed_add.
     exists 2, 1. exists. lia.
     eexists _. iIntros "(A & INIT)".
-    iPoseProof (init_sat with "[A INIT]") as "RES".
-    { instantiate (1:=1). instantiate (1:=0). ss. }
-    { simpl. iFrame. iDestruct "A" as "[[[A E] D] [B C]]". iFrame. }
+    iPoseProof (init_sat (tid1:=0) (tid2:=1) with "[A $INIT]") as "RES"; ss.
+    { iDestruct "A" as "[[[A E] D] [B C]]".
+      rewrite -!OwnM_uPred_ownM_eq. iFrame.
+    }
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
     iDestruct "RES" as "(% & % & % & % & % & % & #INV1 & #INV2 & TID1 & TID2)". red_tl; simpl.
 
@@ -174,7 +175,7 @@ Module ClientCorrect.
       iEval (red_tl) in "RES". iSpecialize ("RES" $! κw).
       iEval (red_tl) in "RES". iSpecialize ("RES" $! γw). red_tl_all. simpl.
       iEval (rewrite red_syn_wpsim) in "RES". iApply ("RES" with "[-]").
-      rewrite ! red_syn_inv. repeat (iSplit; [done | ]). iFrame.
+      rewrite ! red_syn_inv. iFrame "#∗".
     }
   Qed.
 

@@ -11,7 +11,7 @@ Module Excls.
   Section RA.
 
     Context `{Σ : GRA.t}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
     (* Map from nat to Auth Excl A. *)
     Context `{HasExcls : @GRA.inG (t A) Σ}.
 

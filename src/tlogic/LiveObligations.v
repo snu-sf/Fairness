@@ -198,7 +198,7 @@ Section RULES.
   Context `{EDGERA: @GRA.inG EdgeRA Σ}.
   Context `{ONESHOTRA: @GRA.inG ArrowShotRA Σ}.
   Context `{ARROWRA: @GRA.inG ArrowRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Import ObligationRA.
 
@@ -372,8 +372,9 @@ Section RULES.
 
   Definition link k0 k1 l := amplifier k0 k1 (layer l 1).
 
-  Global Program Instance Persistent_link k0 k1 l :
+  Global Instance Persistent_link k0 k1 l :
     Persistent (link k0 k1 l).
+  Proof. apply _. Qed.
 
   Lemma link_new_fine k0 k1 l a m :
     (liveness_obligation_fine k0 l a ∗ progress_credit k1 (m + l) a)
@@ -442,11 +443,13 @@ Section RULES.
   Definition promise {Id} {v} (p : Prism.t _ Id) (i : Id) k l f : iProp :=
     correl v p i k (layer l 1) f.
 
-  Global Program Instance Persistent_delayed_promise {Id} {v} p (i : Id) k l f :
+  Global Instance Persistent_delayed_promise {Id} {v} p (i : Id) k l f :
     Persistent (delayed_promise (v:=v) p i k l f).
+  Proof. apply _. Qed.
 
-  Global Program Instance Persistent_promise {Id} {v} p (i : Id) k l f :
+  Global Instance Persistent_promise {Id} {v} p (i : Id) k l f :
     Persistent (promise (v:=v) p i k l f).
+  Proof. apply _. Qed.
 
   Lemma activate_promise {Id} {v} (p : Prism.t _ Id) (i : Id) k c (F : Vars v)
     :
@@ -528,11 +531,13 @@ Section RULES.
 
   Definition thread_promise {v} k l f : iProp := correl_thread v k (layer l 1) f.
 
-  Global Program Instance Persistent_thread_delayed_promise {v} k l f :
+  Global Instance Persistent_thread_delayed_promise {v} k l f :
     Persistent (thread_delayed_promise (v:=v) k l f).
+  Proof. apply _. Qed.
 
-  Global Program Instance Persistent_thread_promise {v} k l f :
+  Global Instance Persistent_thread_promise {v} k l f :
     Persistent (thread_promise (v:=v) k l f).
+  Proof. apply _. Qed.
 
   Lemma activate_tpromise {v} k c (F : Vars v)
     :
@@ -1108,7 +1113,7 @@ Section ELI.
   Context `{EDGERA : @GRA.inG EdgeRA Σ}.
   Context `{ARROWSHOTRA : @GRA.inG ArrowShotRA Σ}.
   Context `{ARROWRA : @GRA.inG ArrowRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition env_live_chain0 (x : nat) E (k : nat) {v} (A T : Vars v) : iProp :=
     □(€ -∗ prop _ A
@@ -1136,8 +1141,9 @@ Section ELI.
        )
     end.
 
-  Global Program Instance Persistent_ELC0 x E k v (A T : Vars v) :
+  Global Instance Persistent_ELC0 x E k v (A T : Vars v) :
     Persistent (@env_live_chain0 x E k v A T).
+  Proof. apply _. Qed.
 
   Lemma ELC_persistent n x E k l v (A T : Vars v) :
     (@env_live_chain n x E k l v A T) -∗ □(@env_live_chain n x E k l v A T).
@@ -1145,11 +1151,11 @@ Section ELI.
     destruct n; simpl; eauto.
   Qed.
 
-  Global Program Instance Persistent_ELC n x E k l v (A T : Vars v) :
+  Local Hint Extern 100 (Persistent (match ?x with _ => _ end)) => destruct x: typeclass_instances.
+
+  Global Instance Persistent_ELC n x E k l v (A T : Vars v) :
     Persistent (@env_live_chain n x E k l v A T).
-  Next Obligation.
-    iIntros "ELI". iPoseProof (ELC_persistent with "ELI") as "ELI". auto.
-  Qed.
+  Proof. induction n; apply _. Qed.
 
   Lemma elc0_lo_ind k l x E v (A T : Vars v) (Q : iProp) :
     v <= x ->

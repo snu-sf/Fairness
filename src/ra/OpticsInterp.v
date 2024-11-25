@@ -12,7 +12,7 @@ Require Import Program.
 Section STATE.
 
   Context `{Σ: GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Class ViewInterp {S V} (l : Lens.t S V) (SI : S -> iProp) (VI : V -> iProp) := {
       view_interp : forall s, (SI s) ⊢ (VI (Lens.view l s) ∗ ∀ x, VI x -∗ SI (Lens.set l x s))

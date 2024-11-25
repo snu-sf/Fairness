@@ -19,7 +19,7 @@ Qed.
 
 Section SUM.
   Context `{Σ: GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Fixpoint list_prop_sum A (P: A -> iProp) (l: list A): iProp :=
     match l with

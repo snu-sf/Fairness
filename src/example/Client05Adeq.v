@@ -129,7 +129,7 @@ Module Client05Correct.
     eexists _. iIntros "(A & INIT)".
     iPoseProof (init_sat with "[A INIT]") as "RES".
     { instantiate (1:=1). instantiate (1:=0). ss. }
-    { simpl. rewrite Own_op. iDestruct "A" as "[$ $]". iFrame. }
+    { simpl. iDestruct "A" as "[? ?]". rewrite -!OwnM_uPred_ownM_eq. iFrame. }
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
     iDestruct "RES" as "(% & % & % & #INV1 & TGTST & #SPIN & TID1 & TID2)".
     iEval (rewrite red_syn_tgt_interp_as) in "TGTST". iPoseProof "TGTST" as "#TGTST".

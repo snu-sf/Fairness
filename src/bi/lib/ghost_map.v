@@ -16,7 +16,7 @@ Definition ghost_mapURA (K V : Type) `{Countable K} : ucmra := ownRA (gmap_viewR
 Section definitions.
   Context {K V : Type} `{Countable K}.
   Context `{GHOSTMAPURA : GRA.inG (ghost_mapURA K V) Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Local Definition ghost_map_auth_ra_def
     (γ : nat) (q : Qp) (m : gmap K V) : ghost_mapURA K V :=

@@ -58,7 +58,7 @@ Module ConsentP.
       (⌜a0 = a1⌝).
   Proof.
     iIntros "[H0 H1]".
-    iCombine "H0 H1" as "H". iOwnWf "H". apply Consent.vote_agree in H0. des. auto.
+    iCombine "H0 H1" gives %?%Consent.vote_agree. des. auto.
   Qed.
 
   Definition voted
@@ -106,9 +106,12 @@ Module ConsentP.
       (⌜a0 = a1⌝).
   Proof.
     iIntros "[[% H0] [% H1]]".
-    iCombine "H0 H1" as "H". iOwnWf "H".
-    apply FiniteMap.singleton_wf in H0.
-    apply Consent.vote_agree in H0. des. auto.
+    (* TODO: gives %?... does not work. singleton instance not being combined.
+      Check with TC search. Maybe ask at MPI mattermost?
+    *)
+    iCombine "H0 H1" as "H".
+    iDestruct (OwnM_valid with "H") as %?%FiniteMap.singleton_wf%Consent.vote_agree.
+    des. auto.
   Qed.
 
   Lemma voted_duplicable_singleton (A: Type)
@@ -119,12 +122,9 @@ Module ConsentP.
       -∗
       (voted_singleton k a ∗ voted_singleton k a).
   Proof.
-    iIntros "[% H]". erewrite <- (Qp.div_2 q).
-    rewrite Consent.vote_sum.
-    rewrite <- FiniteMap.singleton_add.
-    iDestruct "H" as "[H0 H1]". iSplitL "H0".
-    { iExists _. iFrame. }
-    { iExists _. iFrame. }
+    iIntros "[% H]".
+    rewrite -(Qp.div_2 q) Consent.vote_sum.
+    iDestruct "H" as "[$ $]".
   Qed.
   Global Opaque voted voted_singleton.
 End ConsentP.

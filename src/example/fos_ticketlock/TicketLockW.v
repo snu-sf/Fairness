@@ -1604,27 +1604,23 @@ Section SIM.
 
     iDestruct "CASES" as "[[%CT [[% I] | [% I]]] | [%CF [%CF2 [I | I]]]]"; cycle 2.
     { subst. unfold ticket_lock_inv_unlocked0. red_tl_all. iDestruct "I" as "[C I]".
-      iCombine "HOLD C" as "F". iOwnWf "F" as F.
-      by apply excl_auth_frag_op_valid in F.
+      iCombine "HOLD C" gives %[]%excl_auth_frag_op_valid.
     }
     { subst. unfold ticket_lock_inv_unlocked1. desas "I" yourt; desas "I" κay; desas "I" waits.
       red_tl. iDestruct "I" as "[C I]".
-      iCombine "HOLD C" as "F". iOwnWf "F" as F.
-      by apply excl_auth_frag_op_valid in F.
+      iCombine "HOLD C" gives %[]%excl_auth_frag_op_valid.
     }
     { subst. unfold ticket_lock_inv_locked.
       red_tl. iDestruct "I" as "[C I]".
-      iCombine "HOLD C" as "F". iOwnWf "F" as F.
-      by apply excl_auth_frag_op_valid in F.
+      iCombine "HOLD C" gives %[]%excl_auth_frag_op_valid.
     }
     unfold ticket_lock_inv_mem. red_tl_all. iDestruct "MEM" as "[MEM0 [MEM1 [MEM2 [MEM3 [MEM4 MEM5]]]]]".
-    iCombine "MEM2 HOLD" as "MEM2".
-    iOwnWf "MEM2" as EQ. apply excl_auth_agree_L in EQ. inv EQ.
-    iDestruct "MEM2" as "[MEM2 HOLD]".
+    iCombine "MEM2 HOLD" gives %[= -> -> ->]%excl_auth_agree_L.
+    subst.
     lred2r. iApply wpsim_getL. iSplit; auto. lred2r. rred2r.
 
     iApply (WMem_store_fun_spec with "[MEM0] [-]"). auto.
-    { pose proof mask_disjoint_ticketlock_state_tgt; set_solver. }
+    { solve_ndisj. }
     { repeat iSplit; auto.
       instantiate (1:=wQ (1+now)). iPureIntro. rr.
       replace (nat2c (1+now)) with (Const.add (nat2c now) const_1). ss.
@@ -1813,8 +1809,8 @@ Section SIM.
   End SIM_INITIAL.
 End SIM.
 
-From Fairness Require Import ModSim.
-Import ucmra_list.
+From Fairness Require Import ModSim ucmra_list.
+From Fairness.base_logic Require Import base_logic.
 
 Module TicketLockFair.
 
@@ -1934,8 +1930,9 @@ Module TicketLockFair.
         { intros ?. apply excl_auth_valid. }
       }
     }
-    unfold init_res. repeat rewrite <- GRA.embed_add.
+    unfold init_res.
     exists 2, 1. eexists. lia. exists Ord.omega.
+    rewrite !uPred.ownM_op -!OwnM_uPred_ownM_eq.
     iIntros "[[[[A0 [A1 A2]] B] C] D]".
     iPoseProof ((init_sat ) with "[A0 A1 A2 B C D]") as "H".
     { iFrame. iSplitL "A1"; auto. }

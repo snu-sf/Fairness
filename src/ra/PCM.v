@@ -178,25 +178,29 @@ Section lemmas.
   Context `{!inG A Σ}.
   Implicit Types a : A.
 
-  Lemma embed_wf
-        a
-        (WF: ✓ embed a)
-    :
-      <<WF: ✓ a>>
-  .
-  Proof. by rewrite /embed discrete_fun_singleton_valid cmra_transport_valid in WF. Qed.
-
-  Lemma wf_embed
-        a
-        (WF: ✓ a)
-    :
-      <<WF: ✓ embed a >>
-  .
-  Proof. by rewrite /NW /embed discrete_fun_singleton_valid cmra_transport_valid. Qed.
-
   Global Instance embed_ne : NonExpansive (@embed A Σ _).
   Proof. by intros ????; apply discrete_fun_singleton_ne, cmra_transport_ne. Qed.
   Global Instance embed_proper : Proper ((≡) ==> (≡)) (@embed A Σ _) := ne_proper _.
+
+  Lemma embed_valid a :
+    ✓ embed a ↔ ✓ a.
+  Proof. by rewrite /embed discrete_fun_singleton_valid cmra_transport_valid. Qed.
+
+  Lemma embed_wf
+    a
+    (WF: ✓ embed a)
+  :
+  <<WF: ✓ a>>
+  .
+  Proof. by rewrite embed_valid in WF. Qed.
+
+  Lemma wf_embed
+    a
+    (WF: ✓ a)
+  :
+  <<WF: ✓ embed a >>
+  .
+  Proof. by rewrite /NW embed_valid. Qed.
 
   Lemma embed_add
         a0 a1
@@ -229,8 +233,13 @@ Section lemmas.
     - ii. ss. des. subst. done.
   Qed.
 
-  Lemma embed_core a : embed (core a) ≡ core (embed a).
+  Lemma embed_core a : core (embed a) ≡ embed (core a).
   Proof. by rewrite /embed discrete_fun_singleton_core cmra_transport_core. Qed.
+
+  Global Instance core_id a :
+    CoreId a → CoreId (embed a).
+  Proof. rewrite !core_id_total embed_core. by intros ->. Qed.
+
 
   (* Note: NOT a general lemma for [cmra_transport]. Tailed for the proof pattern
     of [GRA]. I.e., upstreaming this to iris doesn't make sense. *)
@@ -309,6 +318,16 @@ End GRA.
 Coercion GRA.to_URA: GRA.t >-> ucmra.
 
 Global Opaque GRA.to_URA.
+
+From iris.algebra Require Import proofmode_classes.
+
+Section proofmode_instance.
+
+  Global Instance gra_is_op `{!GRA.inG M Σ} (a b c : M):
+    IsOp a b c → IsOp (GRA.embed a) (GRA.embed b) (GRA.embed c).
+  Proof. rewrite /IsOp. intros ->. rewrite GRA.embed_add //. Qed.
+
+End proofmode_instance.
 (* Definition ε `{Σ: GRA.t}: Σ := URA.unit. *)
 
 (***
@@ -349,13 +368,11 @@ Ltac r_first rs :=
 
 (* Solve permuation of cmra [op]s. *)
 Ltac r_solve :=
-  try rewrite !(assoc op);
-  repeat (try rewrite !right_id; try rewrite !left_id);
+  rewrite ?(assoc (⋅)) ?(right_id ε (⋅)) ?(left_id ε (⋅));
   match goal with
   | [|- ?lhs ≡ (_ ⋅ _) ] =>
     let a := r_first lhs in
-    try rewrite -!(comm op a);
-    try rewrite -!(assoc op);
+    rewrite -?(comm (⋅) a) -?(assoc (⋅));
     try (f_equiv; r_solve)
   | _ => try reflexivity
   end
@@ -363,19 +380,16 @@ Ltac r_solve :=
 
 (* Solve inclusion of cmra [op]s, with permuation. *)
 Ltac r_solve_included :=
-  try rewrite !(assoc op);
-  repeat (try rewrite !right_id; try rewrite !left_id);
+  rewrite ?(assoc (⋅)) ?(right_id ε (⋅)) ?(left_id ε (⋅));
   match goal with
   | [|- (?lhs ⋅ _) ≼ (_ ⋅ _) ] =>
     let a := r_first lhs in
-    try rewrite -!(comm op a);
-    repeat rewrite -!(assoc op);
+    rewrite -?(comm (⋅) a) -?(assoc (⋅));
     apply cmra_mono_l;
-    try (r_solve_included)
+    try r_solve_included
   | [|- ?lhs ≼ (_ ⋅ _) ] =>
-    try rewrite -!(comm op lhs);
-    repeat rewrite -!(assoc op);
-    try (apply cmra_included_l)
+    rewrite -?(comm (⋅) lhs) -?(assoc (⋅));
+    try apply cmra_included_l
   | _ => try (reflexivity || apply ucmra_unit_least)
   end
 .
@@ -383,19 +397,10 @@ Ltac r_solve_included :=
 (* [✓ a], [H : ✓ b] where [a ≼ b] syntactically. *)
 Ltac r_wf H := eapply cmra_valid_included; [exact H|]; r_solve_included.
 
-Ltac g_wf_tac :=
-  cbn; rewrite !right_id !left_id;
-  apply GRA.point_wise_wf_lift; ss; splits; repeat rewrite !discrete_fun_lookup_op; unfold GRA.embed; ss;
-  repeat rewrite !right_id; repeat rewrite !left_id; try apply ucmra_unit_valid.
-
 Tactic Notation "unfold_prod" :=
-  try rewrite -!pair_op;
-  rewrite pair_valid;
-  simpl.
+  rewrite -?pair_op ?pair_valid /=.
 
 Tactic Notation "unfold_prod" hyp(H) :=
-  try rewrite -!pair_op in H;
-  rewrite pair_valid in H;
-  simpl in H;
+  rewrite -?pair_op ?pair_valid /= in H;
   let H1 := fresh H in
-  destruct H as [H H1].
+  try destruct H as [H H1].

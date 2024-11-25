@@ -13,7 +13,7 @@ Module OneShots.
 
     Context `{Σ : GRA.t}.
     Context `{@GRA.inG (t A) Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition pending (k: nat) (q: Qp): iProp :=
       own k (OneShot.pending _ q).

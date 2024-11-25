@@ -120,7 +120,8 @@ Module Client01Correct.
     unfold init_res. repeat rewrite <- GRA.embed_add.
     exists 2, 1. exists. lia.
     eexists _. iIntros "(A & INIT)".
-    iDestruct (init_sat 0 1with "[$A $INIT]") as "RES"; [ss|].
+    rewrite -OwnM_uPred_ownM_eq.
+    iDestruct (init_sat 0 1 with "[$A $INIT]") as "RES"; [ss|].
     iEval (rewrite red_syn_fairI) in "RES". iMod "RES".
     iDestruct "RES" as "(% & % & #INV1 & TGTST & T1 & T2)".
     iEval (rewrite red_syn_tgt_interp_as) in "TGTST". iPoseProof "TGTST" as "#TGTST".

@@ -9,7 +9,7 @@ Set Implicit Arguments.
 
 Section SIM.
   Context `{Σ: GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Variable state_src: Type.
   Variable state_tgt: Type.

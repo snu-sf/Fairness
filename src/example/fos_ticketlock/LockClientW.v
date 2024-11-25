@@ -119,7 +119,7 @@ Section SIM.
           {HASLOCKTOKENRA: @GRA.inG (AuthExcls.t (nat * nat * View.t)) Γ} (* obligation id * ghost loc * svw *)
           {HASVIEWTOKENRA: @GRA.inG (AuthExcls.t View.t) Γ}
           {HASINGTOKENRA: @GRA.inG (Excls.t unit) Γ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Ltac desas H name := iEval (red_tl; simpl) in H; iDestruct H as (name) H.
 

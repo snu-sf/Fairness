@@ -9,7 +9,7 @@ Local Notation index := nat.
 Section INDEXED_INVARIANT_SET.
 
   Context `{Σ : GRA.t}.
-Notation iProp := (iProp Σ).
+Notation iProp := (iProp Σ) (only parsing).
   Class IInvSet (Vars : index -> Type) :=
     { prop : forall (i : index), (Vars i) -> iProp }.
 
@@ -32,7 +32,7 @@ End INDEXED_INVARIANT_SET.
 Section PCM_OWN.
 
   Context `{Σ : GRA.t}.
-Notation iProp := (iProp Σ).
+Notation iProp := (iProp Σ) (only parsing).
   Definition OwnE `{@GRA.inG OwnEsRA Σ} (n : index) (E : coPset) :=
     OwnM (@maps_to_res index CoPset.t n (Some E)).
 

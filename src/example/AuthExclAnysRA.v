@@ -9,7 +9,7 @@ Section AEAPROP.
   Definition AuthExclAnysRA : ucmra := AuthExcls.t Any.t.
 
   Context `{Σ : GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
   (* Map from nat to Auth Excl Any. *)
   Context {AuthExclAnys : @GRA.inG AuthExclAnysRA Σ}.
 

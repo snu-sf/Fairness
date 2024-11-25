@@ -12,22 +12,6 @@ Section AUX.
     | O => True
     | S m => (sep_conjs Ps m) ∗ (Ps m)
     end.
-
-  Lemma own_persistent `{@GRA.inG M Σ}
-        (r: M)
-    :
-    (OwnM r) -∗ (□ OwnM (core r)).
-  Proof.
-    iIntros "H".
-    iDestruct (OwnM_persistently with "H") as "#?".
-    iModIntro. done.
-  Qed.
-
-  Lemma OwnM_ura_unit `{@GRA.inG M Σ}
-    :
-    ⊢ OwnM ((ε : M)).
-  Proof. apply OwnM_unit. Qed.
-
 End AUX.
 
 Definition maps_to {Σ} {A: Type} {M: ucmra} `{ING: @GRA.inG (A -d> M) Σ}
@@ -46,10 +30,8 @@ Section UPD.
       -∗
       #=> (OwnM (●E (a1 : leibnizO A))) ∗ OwnM (◯E (a1 : leibnizO A)).
   Proof.
-    iIntros "H0 H1". iCombine "H0 H1" as "H".
-    iPoseProof (OwnM_Upd with "H") as "> [H0 H1]".
-    { apply (excl_auth_update _ _ (a1 : leibnizO A)). }
-    iModIntro. iFrame.
+    rewrite bi.wand_curry -!OwnM_op.
+    apply bi.entails_wand, OwnM_Upd, excl_auth_update.
   Qed.
 
   Lemma black_white_equal (a a' : A)
@@ -60,8 +42,7 @@ Section UPD.
       -∗
       ⌜a = a'⌝.
   Proof.
-    iIntros "H0 H1". iCombine "H0 H1" as "H".
-    iOwnWf "H". iPureIntro. by apply excl_auth_agree_L in H.
+    iIntros "H0 H1". by iCombine "H0 H1" gives %?%excl_auth_agree_L.
   Qed.
 
   Lemma white_white_excl a a'
@@ -72,8 +53,7 @@ Section UPD.
       -∗
       ⌜False⌝.
   Proof.
-    iIntros "H0 H1". iCombine "H0 H1" as "H".
-    iOwnWf "H". by apply excl_auth_frag_op_valid in H.
+    iIntros "H0 H1". by iCombine "H0 H1" gives %?%excl_auth_frag_op_valid.
   Qed.
 
 End UPD.
@@ -84,50 +64,42 @@ Section OWNS.
   Context `{R: ucmra}.
   Context `{IN1: @GRA.inG R Σ}.
   Context `{IN2: @GRA.inG (Id -d> R) Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition OwnMs (s: Id -> Prop) (u: R): iProp :=
-    (OwnM ((fun i =>
-              if (excluded_middle_informative (s i))
-              then u
-              else ε): (Id -d> R))).
+    OwnM ((λ i, if (excluded_middle_informative (s i))
+                then u else ε) : _ -d> _ ).
 
   Lemma OwnMs_impl (s0 s1: Id -> Prop) u
         (IMPL: forall i (IN: s0 i), s1 i)
     :
-    (OwnMs s1 u)
-      -∗
-      (OwnMs s0 u).
+    OwnMs s1 u ⊢ OwnMs s0 u.
   Proof.
-    iIntros "OWNMS".
-    iApply (OwnM_extends with "OWNMS"). apply discrete_fun_included_spec_2.
-    i. des_ifs; try by reflexivity.
-    exfalso. eauto.
+    apply OwnM_extends, discrete_fun_included_spec_2.
+    i. des_ifs. exfalso. eauto.
   Qed.
 
   Lemma OwnMs_empty s u
-        (EMPTY: forall i, ~ s i)
+        P (EMPTY: forall i, ~ s i)
     :
-    ⊢ OwnMs s u.
+    P ⊢ OwnMs s u.
   Proof.
-    iIntros. iApply (OwnM_extends with "[]").
-    2:{ iApply (@OwnM_ura_unit (Id -d> R)). }
-    apply discrete_fun_included_spec_2. i. des_ifs.
-    { exfalso. eapply EMPTY; eauto. }
+    rewrite (OwnM_unit P).
+    apply OwnM_extends, discrete_fun_included_spec_2.
+    i. des_ifs. exfalso. by eapply EMPTY.
   Qed.
 
   Lemma OwnMs_fold (s0 s1: Id -> Prop) i u
         (IMPL: forall j (IN: s0 j), s1 j \/ j = i)
     :
-    ((OwnMs s1 u) ∗ (maps_to i u))
-      -∗
-      (OwnMs s0 u).
+    OwnMs s1 u ∗ maps_to i u
+      ⊢
+      OwnMs s0 u.
   Proof.
-    iIntros "[OWNMS OWN]".
-    iCombine "OWNMS OWN" as "OWNMS".
-    iApply (OwnM_extends with "OWNMS"). apply discrete_fun_included_spec_2.
+    rewrite -OwnM_op.
+    apply OwnM_extends, discrete_fun_included_spec_2.
     i. rewrite discrete_fun_lookup_op.
-    des_ifs; ss; repeat rewrite right_id; repeat rewrite left_id; ss; try by reflexivity.
+    des_ifs; ss; rewrite ?right_id ?left_id //=.
     hexploit IMPL; eauto. i. des; ss. subst.
     by rewrite discrete_fun_lookup_singleton.
   Qed.
@@ -136,51 +108,41 @@ Section OWNS.
              (IMPL: forall j (IN: s0 j \/ j = i), s1 j)
              (NIN: ~ s0 i)
     :
-    (OwnMs s1 u)
-      -∗
-      (OwnMs s0 u ∗ maps_to i u).
+    OwnMs s1 u
+      ⊢
+      OwnMs s0 u ∗ maps_to i u.
   Proof.
-    iIntros "OWNMS".
-    iPoseProof (OwnM_extends with "OWNMS") as "[$ $]".
-    rewrite !discrete_fun_op.
-    apply discrete_fun_included_spec_2=> a.
-    destruct (excluded_middle_informative (i = a)) as [->|];
-      rewrite ?discrete_fun_lookup_singleton ?discrete_fun_lookup_singleton_ne //;
-    des_ifs; ss; repeat rewrite right_id; repeat rewrite left_id; ss; try by reflexivity.
-    { exfalso. eapply n0. auto. }
-    { exfalso. eapply n0. auto. }
+    rewrite -OwnM_op.
+    apply OwnM_extends, discrete_fun_included_spec_2=> a.
+    rewrite !discrete_fun_op maps_to_res_eq.
+    des_ifs; ss; rewrite ?right_id ?left_id //=.
+    all: naive_solver.
   Qed.
 
   Definition OwnMs_combine (s0 s1: Id -> Prop) u
     :
-    (OwnMs s0 u ∗ OwnMs s1 u)
-      -∗
-      (OwnMs (fun i => s0 i \/ s1 i) u).
+    OwnMs s0 u ∗ OwnMs s1 u
+      ⊢
+      OwnMs (λ i, (s0 i ∨ s1 i)%type) u.
   Proof.
-    iIntros "[OWNMS0 OWNMS1]".
-    iCombine "OWNMS0 OWNMS1" as "OWNMS".
-    iApply (OwnM_extends with "OWNMS"). apply discrete_fun_included_spec_2.
+    rewrite -OwnM_op.
+    apply OwnM_extends, discrete_fun_included_spec_2.
     i. rewrite discrete_fun_lookup_op.
-    des_ifs; ss; repeat rewrite right_id; repeat rewrite left_id; ss; try by reflexivity.
-    des; ss.
+    des_ifs; des; ss; rewrite ?right_id ?left_id //=.
   Qed.
 
   Definition OwnMs_split (s0 s1: Id -> Prop) u
              (DISJOINT: forall i (IN0: s0 i) (IN1: s1 i), False)
     :
-    (OwnMs (fun i => s0 i \/ s1 i) u)
-      -∗
-      (OwnMs s0 u ∗ OwnMs s1 u).
+    OwnMs (λ i, (s0 i ∨ s1 i)%type ) u
+      ⊢
+      OwnMs s0 u ∗ OwnMs s1 u.
   Proof.
-    iIntros "OWNMS".
-    iPoseProof (OwnM_extends with "OWNMS") as "[$ $]".
-    apply discrete_fun_included_spec_2.
+    rewrite -OwnM_op.
+    apply OwnM_extends, discrete_fun_included_spec_2.
     i. rewrite discrete_fun_lookup_op.
-    des_ifs; ss; repeat rewrite right_id; repeat rewrite left_id; ss; try by reflexivity.
-    { exfalso. eapply DISJOINT; eauto. }
-    { exfalso. eapply n; eauto. }
-    { exfalso. eapply n0; eauto. }
-    { exfalso. eapply n0; eauto. }
+    des_ifs; ss; rewrite ?right_id ?left_id //=.
+    all: naive_solver.
   Qed.
 
 End OWNS.

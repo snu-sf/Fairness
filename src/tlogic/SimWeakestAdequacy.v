@@ -193,14 +193,14 @@ Module WSim.
     Local Notation index := nat.
     Context `{Vars : index -> Type}.
     Context `{Σ: GRA.t}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Lemma iProp_satisfable (r0: Σ) (P: iProp) (WF: ✓ r0)
-          (IMPL: Own r0 ⊢ #=> P)
+          (IMPL: uPred_ownM r0 ⊢ #=> P)
       :
       exists r1, uPred_holds (to_upred P) r1 /\ ✓ r1.
     Proof.
-      revert IMPL. rewrite Own_eq. unfold IPM.Own_def. uPred.unseal. intros [IMPL].
+      revert IMPL. uPred.unseal. intros [IMPL].
       rr in IMPL. hexploit (IMPL r0); auto.
       { rr. exists ε. rewrite right_id; [done|apply _]. }
       { instantiate (1:=ε). rewrite right_id; [done|apply _]. }
@@ -450,7 +450,7 @@ Module WSim.
     Proof.
       ii. specialize (SIM tid). r in INV.
       assert (IMPL:
-               ((Own r_arg) ∗ (default_I x ths0 im_src0 im_tgt0 st_src0 st_tgt0 ∗
+               ((uPred_ownM r_arg) ∗ (default_I x ths0 im_src0 im_tgt0 st_src0 st_tgt0 ∗
                                           (wsat_auth x ∗ wsats x ∗ OwnE ⊤)))
                  ⊢
                  #=> (((default_I x ths1 im_src0 im_tgt1 st_src0 st_tgt0)
@@ -467,22 +467,21 @@ Module WSim.
         { eauto. }
         iModIntro. iFrame.
         iRevert "OWN DUTY". iStopProof.
-        rewrite Own_eq. unfold IPM.Own_def. uPred.unseal. rr.
-        split. ii. rr in H0. des. rewrite H0 in H1. rewrite H0 in H3.
+        uPred.unseal. rr.
+        split. ii. rr in H0. des. setoid_subst.
         revert SIM. uPred.unseal. intros SIM.
         eapply Fairness.base_logic.upred.uPred_mono.
-        { apply SIM; eauto.
+        { apply SIM; [|apply H2| |apply H4].
           - r_wf H1.
           - r_wf H3.
         }
-        rewrite H0. exists z. r_solve.
+        r_solve_included.
       }
-      revert IMPL. rewrite Own_eq. unfold IPM.Own_def.
-      uPred.unseal. intros [IMPL].
-       (* rr in IMPL. *)
+      revert IMPL. uPred.unseal. intros [IMPL].
       hexploit IMPL; [|eauto|..]; cycle 1.
-      { rr. eexists _,_. esplits; eauto. rr. eexists. reflexivity.
-        revert INV. uPred.unseal. intros INV. done.
+      { rr. eexists _,_. esplits; eauto.
+        - rr. eexists. reflexivity.
+        - revert INV. by uPred.unseal.
       }
       i. rr in H.  hexploit H; last first.
       i. des.
@@ -496,7 +495,7 @@ Module WSim.
       { uPred.unseal. eapply INV0. }
       { eauto. }
       { eauto. }
-      uPred.unseal. eauto.
+      { uPred.unseal. eauto. }
       { instantiate (1:=ε). r_wf VALID. }
       { r_wf VALID. }
     Qed.
@@ -507,9 +506,9 @@ Module WSim.
       Definition fun_pairs :=
         (NatMapP.of_list (numbering (List.map (fun '(fn, arg) => (fn2th md_src fn arg, fn2th md_tgt fn arg)) c))).
 
-      Local Instance nat_map_equiv : Proper (eq ==> eq ==> equiv ==> equiv)
+      Local Instance nat_map_equiv : Proper ((=) ==> (=) ==> (≡) ==> (≡))
         (λ (_ : NatMap.key) (r s : Σ), r ⋅ s).
-      Proof. intros ???????? EQm. rewrite EQm. subst. done. Qed.
+      Proof. solve_proper. Qed.
 
       Lemma natmap_prop_sum_resmap A (P: nat -> A -> iProp) (m: NatMap.t A) rs
             (SAT: Fairness.base_logic.upred.uPred_holds (to_upred (natmap_prop_sum m P)) rs)
@@ -527,7 +526,7 @@ Module WSim.
         revert rs SAT WF.
         pattern m. revert m. eapply nm_ind; i.
         { exists (NatMap.empty _). splits.
-          { exists rs. rewrite left_id. auto. apply _. }
+          { exists rs. rewrite left_id; auto. apply _. }
           { eapply nm_wf_pair_empty_empty_eq. }
           { i. rewrite NatMapP.F.empty_o in FINDA. ss. }
         }
@@ -548,13 +547,12 @@ Module WSim.
         i. des. eexists (NatMap.add k _ rm). splits.
         { r in EXT. des. exists z.
           setoid_subst.
-          erewrite (NatMapP.fold_add (eqA := equiv) _ _ _ _).
+          unshelve erewrite (NatMapP.fold_add (eqA := (≡)) _ _ _ _).
+          { ii. r_solve. }
           { rewrite assoc; [done|apply _]. }
-          Unshelve.
           { eapply nm_wf_pair_find_cases in PAIR. des.
             apply NatMapP.F.not_find_in_iff. eapply PAIR; auto.
           }
-          { ii. r_solve. }
         }
         { eapply nm_wf_pair_add; eauto. }
         { i. rewrite NatMapP.F.add_o in FINDA.
@@ -570,7 +568,7 @@ Module WSim.
             init_res_cond: initial_res_wf init_res;
             init_inv:
             exists (l1 l0: index) (DL: l0 < l1) (o: Ord.t),
-              (Own init_res ∗ (initial_prop l0 (key_set (prog2ths md_src c)) o)) (* INIT *)
+              (uPred_ownM init_res ∗ (initial_prop l0 (key_set (prog2ths md_src c)) o)) (* INIT *)
                 -∗
                 (=|l1|=(fairI (ident_tgt:=md_tgt.(Mod.ident)) l1)={⊤}=>
                       (
@@ -679,7 +677,7 @@ Module WSim.
             whole_sim_funs_simple:
             exists l1 l0 (DL: l0 < l1) (r: Σ),
               (<<WF: initial_res_wf r>>) /\
-                (<<SIM: ((Own r ∗ (initial_prop l0 (key_set (prog2ths md_src c)) Ord.omega))
+                (<<SIM: ((uPred_ownM r ∗ (initial_prop l0 (key_set (prog2ths md_src c)) Ord.omega))
                            ⊢ #=>
                            (whole_sim_simple_invariant
                               ∗
@@ -733,7 +731,7 @@ Module WSim.
             init_res_cond: initial_res_wf init_res;
             init_inv:
             exists l1 l0 (DL: l0 < l1) o,
-              (Own init_res ∗ (initial_prop l0 TIdSet.empty o)) (* INIT *)
+              (uPred_ownM init_res ∗ (initial_prop l0 TIdSet.empty o)) (* INIT *)
                 -∗
                 (=|l1|=(fairI (ident_tgt:=md_tgt.(Mod.ident)) l1)={⊤}=>
                        (□(∀ fn args,
@@ -845,7 +843,7 @@ Module WSim.
             init_satisfied:
             exists (r: Σ),
               (<<WF: initial_res_wf r>>) /\
-                (<<SAT: ((Own r ∗ (initial_prop l0 TIdSet.empty Ord.omega))
+                (<<SAT: ((uPred_ownM r ∗ (initial_prop l0 TIdSet.empty Ord.omega))
                            ⊢ #=> context_sim_simple_invariant)%I>>);
 
             sim_funs:

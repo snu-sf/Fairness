@@ -65,7 +65,7 @@ Lemma own_alloc_strong_dep (f : nat → A) (P : nat → Prop) :
 Proof.
   intros HPinf Hf.
   rewrite <- (bupd_mono (∃ m, ⌜∃ γ, P γ ∧ m = {[γ := (f γ)]}⌝ ∧ OwnM m)%I).
-  - rewrite /bi_emp_valid OwnM_unit.
+  - rewrite /bi_emp_valid (OwnM_unit emp).
     apply OwnM_Upd_set.
     apply (alloc_updateP_strong_dep _ P _ f); [done| |naive_solver].
     intros γ _ ?.
@@ -139,11 +139,10 @@ Global Arguments own_update_3 {_ _} [_] _ _ _ _ _ _.
 
 Lemma own_unit A `{!GRA.inG (ownRA (A:ucmra)) Σ} γ : ⊢ |==> own γ (ε:A).
 Proof.
-  rewrite /bi_emp_valid OwnM_unit !own_eq /own_def.
+  rewrite /bi_emp_valid (OwnM_unit emp) !own_eq /own_def.
   apply OwnM_Upd.
-  apply (alloc_unit_singleton_update ε).
+  apply: (alloc_unit_singleton_update ε).
   - apply ucmra_unit_valid.
-  - intros x. by rewrite left_id.
   - done.
 Qed.
 
@@ -151,7 +150,7 @@ Section big_op_instances.
   Context `{!GRA.inG (ownRA (A:ucmra)) Σ}.
 
   Global Instance own_cmra_sep_homomorphism γ :
-    WeakMonoidHomomorphism op uPred_sep (≡) (own γ).
+    WeakMonoidHomomorphism (⋅) (∗)%I (≡) (own γ).
   Proof. split; try apply _. apply own_op. Qed.
 
   Lemma big_opL_own {B} γ (f : nat → B → A) (l : list B) :
@@ -172,7 +171,7 @@ Section big_op_instances.
   Proof. apply (big_opMS_commute1 _). Qed.
 
   Global Instance own_cmra_sep_entails_homomorphism γ :
-    MonoidHomomorphism op uPred_sep (⊢) (own γ).
+    MonoidHomomorphism (⋅) (∗)%I (⊢) (own γ).
   Proof.
     split; [split|]; try apply _.
     - intros. by rewrite own_op.

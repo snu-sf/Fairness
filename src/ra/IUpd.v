@@ -3,7 +3,7 @@ From Fairness Require Import PCM IPM.
 
 Section IUPD.
   Context {Σ: GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition IUpd (I: iProp): iProp -> iProp :=
     fun P => (I -∗ #=> (I ∗ P))%I.
@@ -166,7 +166,7 @@ End class_instances.
 (* TODO: move this? *)
 Section UPDATING.
   Context `{Σ: @GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition updating (I: iProp) (P Q R: iProp): iProp :=
     I -∗ (#=> (P ∗ (Q -∗ #=> (I ∗ R)))).

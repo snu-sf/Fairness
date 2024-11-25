@@ -156,7 +156,7 @@ Section MEMRA.
   Context {TLRAS : TLRAs STT Γ Σ}.
   Variable p: Prism.t id_tgt_type WMem.ident.
   Context {HasOneShots : @GRA.inG (OneShots.t unit) Γ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition wmemRA : ucmra := (Loc.t -d> (excl_authUR (leibnizO Cell.t))).
   Context `{WMEMRA: @GRA.inG wmemRA Γ}.
@@ -287,7 +287,7 @@ Section MEMRA.
   Proof.
     iIntros "BLACK WHITE".
     unfold wmemory_black, points_to.
-    iCombine "BLACK WHITE" as "OWN". iOwnWf "OWN". iPureIntro.
+    iCombine "BLACK WHITE" gives %H. iPureIntro.
     specialize (H l). rewrite discrete_fun_lookup_op in H.
     unfold memory_resource_black, points_to_white in H. des_ifs.
     by apply excl_auth_agree_L in H.
@@ -306,20 +306,17 @@ Section MEMRA.
   Proof.
     iIntros "BLACK WHITE".
     unfold wmemory_black, points_to.
-    iCombine "BLACK WHITE" as "OWN". iOwnWf "OWN".
+    iCombine "BLACK WHITE" as "OWN". iDestruct (OwnM_valid with "OWN") as %H.
     specialize (H l). rewrite discrete_fun_lookup_op in H.
     unfold memory_resource_black, points_to_white in H. des_ifs.
     apply excl_auth_agree_L in H.
-    iAssert (#=> OwnM (memory_resource_black (WMem.mk m1 m0.(WMem.sc)) ⋅ points_to_white l (m1 l))) with "[OWN]" as "> [BLACK WHITE]".
-    { iApply (OwnM_Upd with "OWN").
-      apply discrete_fun_update. i.
-      unfold memory_resource_black, points_to_white.
-      rewrite !discrete_fun_lookup_op. ss.
-      inv WRITE.
-      do 2 (setoid_rewrite LocFun.add_spec; des_ifs).
-      apply excl_auth_update.
-    }
-    { iModIntro. iFrame. }
+    iMod (OwnM_Upd with "OWN") as "[$ $]"; last done.
+    apply discrete_fun_update. i.
+    unfold memory_resource_black, points_to_white.
+    rewrite !discrete_fun_lookup_op. ss.
+    inv WRITE.
+    do 2 (setoid_rewrite LocFun.add_spec; des_ifs).
+    apply excl_auth_update.
   Qed.
 
   Lemma memory_write_max_ts m0 loc from to msg m1

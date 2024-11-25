@@ -39,7 +39,7 @@ Qed.
 Section Monotone.
   Definition monoRA: ucmra := ownRA (authUR $ mraUR gmon_le).
   Context `{GRA.inG monoRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Section LE.
     Variable k: nat.

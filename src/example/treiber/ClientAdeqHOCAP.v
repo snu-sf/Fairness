@@ -125,9 +125,8 @@ Module TreiberClientCorrect.
     }
     unfold init_res.
     exists 2, 1. exists. lia.
-    eexists _. iIntros "(A & INIT)".
-    iDestruct (init_sat 0 1 with "[A INIT]") as "RES"; [ss| |].
-    { simpl. iFrame "A INIT". }
+    eexists _. iIntros "(A & INIT)". rewrite -OwnM_uPred_ownM_eq.
+    iDestruct (init_sat 0 1 with "[$A $INIT]") as "RES"; [ss|].
 
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
     iDestruct "RES" as (?????) "(TGTST & #IsT & #CInv & Tpush & Dpush & Pc_kt_push & Pc_k_push & live_k & #Act_k & Tok & Pc_kt_pop & Tpop & Dpop)".
@@ -143,7 +142,7 @@ Module TreiberClientCorrect.
       iApply ("RES" with "[-]"). iClear "RES".
       rewrite red_syn_tgt_interp_as. simpl. iFrame "∗#".
     }
-    iSplit; [|done].
+    rewrite right_id.
     { iDestruct (TreiberClient_pop_sim _ _ γk k kt γs γpop) as "RES".
       simpl. red_tl_all.
       iEval (rewrite red_syn_wpsim) in "RES".

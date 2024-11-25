@@ -152,7 +152,7 @@ Module sAtomI.
   Context `{Γ : SRA.t}.
   Context `{As : sAtom.t}.
   Context `{Σ : GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Class t : Type := interp :
       forall (n : index), As (Syntax._sProp n) -> iProp.
@@ -169,7 +169,7 @@ Module SyntaxI.
     Context `{Σ : GRA.t}.
     Context `{sub: @SRA.subG Γ Σ}.
     Context `{α: sAtomI.t (Γ:=Γ) (Σ:=Σ)}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Import Syntax.
 

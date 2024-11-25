@@ -12,7 +12,7 @@ Section Ticket.
   Definition TicketRA : ucmra := nat -d> _TicketRA.
 
   Context `{Σ : GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
   Context {HasTicketRA : @GRA.inG TicketRA Σ}.
   Context {AuthExclAnys : @GRA.inG (AuthExcls.t (nat * nat * nat)) Σ}.
 

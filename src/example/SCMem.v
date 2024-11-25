@@ -377,7 +377,7 @@ Section MEMRA.
   Notation val_to_mem_ra x := (to_agree (A:=leibnizO _) (x : SCMem.val)) (only parsing).
 
   Context `{MEMRA: @GRA.inG memRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition memory_resource_black (m: SCMem.t): memRA :=
     λ blk ofs,
@@ -464,10 +464,9 @@ Section MEMRA.
       -∗
       (OwnM (points_tos_white blk ofs vs dq)).
   Proof.
-    revert blk ofs. induction vs; ss; i.
-    { iIntros "_". iPoseProof (@OwnM_unit _ memRA) as "H". auto. }
-    iIntros "[H0 H1]". iSplitL "H0"; auto.
-    iApply IHvs. auto.
+    apply bi.entails_wand. revert blk ofs. induction vs; ss; i.
+    { apply OwnM_unit. }
+    rewrite IHvs OwnM_op //.
   Qed.
 
   Definition memory_empty_resource: memRA :=
@@ -572,20 +571,19 @@ Section MEMRA.
   Proof.
     iIntros "[[MB %WF] PTS]".
     unfold memory_black, points_to. des_ifs.
-    iCombine "MB PTS" as "OWN". iOwnWf "OWN".
+    iCombine "MB PTS" as "OWN". iDestruct (OwnM_valid with "OWN") as %H.
     specialize (H n n0).
     unfold memory_resource_black, points_to_white in H.
     rewrite !discrete_fun_lookup_op !discrete_fun_lookup_singleton in H. des_ifs.
     2:{ exfalso. rewrite -(assoc (⋅)) in H.
-        apply cmra_valid_op_r,gmap_view_frag_op_valid in H.
+        apply cmra_valid_op_r, gmap_view_frag_op_valid in H.
         des. done.
     }
     remember (SCMem.free _ _) as m1 eqn:FREE. pose proof FREE as FREE'. revert FREE'.
     unfold SCMem.free, SCMem.has_permission in FREE. ss. des_ifs. remember (SCMem.mk _ _) as m1. i.
     iExists m1. iSplit; eauto.
-    iAssert (#=> (OwnM (memory_resource_black m1))) with "[OWN]" as "> RB".
-    { iApply (OwnM_Upd with "OWN").
-      eapply memory_free_updatable; eauto. }
+    iMod (OwnM_Upd with "OWN") as "RB".
+    { eapply memory_free_updatable; eauto. }
     iModIntro. iFrame. iPureIntro. ii. unfold SCMem.free in FREE'.
     des_ifs; ss; des_ifs; eapply WF in SOME; eauto.
   Qed.
@@ -847,7 +845,7 @@ Section MEMRA.
   Proof.
     iIntros "POINT0 POINT1". ss.
     destruct l as [n|[b o]]; ss.
-    iCombine "POINT0 POINT1" as "POINT". iOwnWf "POINT".
+    iCombine "POINT0 POINT1" gives %H.
     iPureIntro.
     repeat rewrite discrete_fun_singleton_op discrete_fun_singleton_valid in H.
     by apply gmap_view_frag_op_valid in H as [_ ?%to_agree_op_valid_L].
@@ -875,27 +873,32 @@ Section MEMRA.
 
   (* Persistency lemmas *)
 
+  (* TODO: remove after Iris bump to 4.3.0 *)
+  Local Hint Extern 100 (Persistent (match ?x with _ => _ end)) => destruct x : typeclass_instances.
+
   Global Instance points_to_discarded_persistent l v : Persistent (points_to l v DfracDiscarded).
-  Proof. rewrite /points_to /points_to_white. des_ifs; apply _. Qed.
+  Proof. rewrite /points_to. apply _. Qed.
   Global Instance points_tos_discarded_persistent l vs : Persistent (points_tos l vs DfracDiscarded).
   Proof. revert l; induction vs; apply _. Qed.
 
   Lemma points_to_persist l dq v :
-    points_to l v dq ==∗ points_to l v DfracDiscarded.
+    points_to l v dq ⊢|==> points_to l v DfracDiscarded.
   Proof.
     unfold points_to,points_to_white. des_ifs.
-    { by iIntros (?). }
-    iApply OwnM_Upd.
-    do 2 apply discrete_fun_singleton_update.
-    apply gmap_view_frag_persist.
+    { iIntros ([]). }
+    apply OwnM_Upd,
+      discrete_fun_singleton_update,
+      discrete_fun_singleton_update,
+      gmap_view_frag_persist.
   Qed.
   Lemma points_tos_persist l dq vs :
-    points_tos l vs dq ==∗ points_tos l vs DfracDiscarded.
+    points_tos l vs dq ⊢|==> points_tos l vs DfracDiscarded.
   Proof.
-    iInduction (vs) as [|v vs] "IH" forall (l); ss.
-    iIntros "(l↦ & l↦s)".
+    revert l. induction vs as [|v vs IH]; ss.
+    { intros. iPureIntro. ss. }
+    iIntros (l) "(l↦ & l↦s)".
     iMod (points_to_persist with "l↦") as "$".
-    iMod ("IH" with "l↦s") as "$".
+    iMod (IH with "l↦s") as "$".
     done.
   Qed.
 End MEMRA.

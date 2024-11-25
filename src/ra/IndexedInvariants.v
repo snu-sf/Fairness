@@ -9,7 +9,7 @@ Local Notation index := nat.
 Section INDEXED_INVARIANT_SET.
 
   Context `{Σ : GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Class IInvSet (Vars : index -> Type) :=
     { prop : forall (i : index), (Vars i) -> iProp }.
@@ -28,7 +28,7 @@ End INDEXED_INVARIANT_SET.
 Section PCM_OWN.
 
   Context `{Σ : GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
   Definition OwnE `{GRA.inG OwnERA Σ} (E : coPset) : iProp := OwnM (CoPset E).
 
   Definition OwnD `{GRA.inG OwnDRA Σ} (D : gset positive) := OwnM (GSet D).
@@ -103,7 +103,7 @@ Section WORLD_SATISFACTION.
   Context `{@GRA.inG OwnERA Σ}.
   Context `{@GRA.inG OwnDRA Σ}.
   Context `{@GRA.inG (IInvSetRA Vars) Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Variable n : index.
   Local Notation Var := (Vars n).
@@ -123,7 +123,7 @@ Section WORLD_SATISFACTION.
     (INF : ∀ (E : gset positive), ∃ i, i ∉ E ∧ φ i)
     : ⊢ |==> ∃ i, ⌜φ i⌝ ∧ OwnD {[i]}.
   Proof.
-    iDestruct (@OwnM_unit _ OwnDRA) as "H".
+    iDestruct (OwnM_unit (M:=OwnDRA) emp with "[//]") as "H".
     iMod (OwnM_Upd_set with "H") as (?) "[% ?]".
     { apply gset_disj_alloc_empty_updateP_strong', INF. }
     ss. des. subst. by iFrame "∗%".
@@ -216,7 +216,7 @@ Section WSATS.
   Context `{@GRA.inG OwnDRA Σ}.
   Context `{@GRA.inG (IInvSetRA Vars) Σ}.
 
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition wsat_auth_black (x : index) : IInvSetRA Vars :=
     λ n, if (lt_dec n x)
@@ -276,7 +276,7 @@ Section WSATS.
       { subst. intros a. rewrite /wsat_auth_black discrete_fun_lookup_op.
         destruct (decide (a = m)) as [->|];
         rewrite ?discrete_fun_lookup_singleton ?discrete_fun_lookup_singleton_ne //.
-        all: des_ifs; try lia.
+        all: des_ifs; lia.
       }
       rewrite /wsat_auth {}Hwsat. iDestruct "AUTH" as "[$ NEW]".
       iPoseProof (wsat_init with "NEW") as "NEW".
@@ -407,7 +407,7 @@ Section FANCY_UPDATE.
   Context `{@GRA.inG OwnDRA Σ}.
   Context `{@GRA.inG (IInvSetRA Vars) Σ}.
 
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition inv (n : index) (N : namespace) p :=
     (∃ i, ⌜i ∈ (↑N : coPset)⌝ ∧ OwnI n i p)%I.
@@ -491,7 +491,7 @@ Context `{GRA.inG OwnERA Σ}.
 Context `{GRA.inG OwnDRA Σ}.
 Context `{GRA.inG (IInvSetRA Vars) Σ}.
 
-Notation iProp := (iProp Σ).
+Notation iProp := (iProp Σ) (only parsing).
 
   Lemma FUpd_unseal x A E1 E2 P :
     (=|x|=(A)={E1,E2}=> P) ⊣⊢ (A ∗ wsats x ∗ OwnE E1 -∗ #=> (A ∗ wsats x ∗ OwnE E2 ∗ P)).

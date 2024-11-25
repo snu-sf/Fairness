@@ -1,5 +1,6 @@
 From sflib Require Import sflib.
-From iris.algebra Require Import cmra updates gmap.
+From iris.algebra Require Import cmra updates.
+From iris.algebra Require Export gmap.
 
 From iris.prelude Require Import options.
 
@@ -37,6 +38,11 @@ Module FiniteMap.
       :
       core (singleton k m) ≡ singleton k (core m).
     Proof. by rewrite singleton_core_total. Qed.
+
+    Global Instance singleton_core_id k m
+      :
+      CoreId m → CoreId (singleton k m).
+    Proof. apply _. Qed.
 
     Lemma singleton_updatable k m0 m1
           (UPD: m0 ~~> m1)

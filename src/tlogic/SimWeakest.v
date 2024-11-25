@@ -20,7 +20,7 @@ Set Implicit Arguments.
 Section STATE.
 
   Context `{Σ: GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Variable state_src: Type.
   Variable state_tgt: Type.
@@ -1865,7 +1865,7 @@ Section TRIPLES.
   Context `{EDGERA: @GRA.inG EdgeRA Σ}.
   Context `{ONESHOTRA: @GRA.inG ArrowShotRA Σ}.
   Context `{ARROWRA: @GRA.inG (@ArrowRA ident_tgt Vars) Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
 
   (** Formats for triples-like specs. *)

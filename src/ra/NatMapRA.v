@@ -197,32 +197,26 @@ Module NatMapRA.
     Proof.
       rewrite local_update_unital_discrete.
       intros ctx _ FRAME. fold_leibniz.
-      rewrite op_unfold /add unit_unfold /unit in FRAME.
-      des_ifs. split; ss.
+      rewrite left_id in FRAME. subst.
+      split; ss.
       rewrite op_unfold /add /singleton.
       des_ifs.
-      { apply disjoint_true_iff in Heq0.
-        apply NatMapP.Disjoint_sym in Heq0.
-        apply Disjoint_add in Heq0. des.
+      { apply disjoint_true_iff, NatMapP.Disjoint_sym, Disjoint_add in Heq.
+        des.
         f_equal. eapply eq_ext_is_eq. ii.
-        rewrite ! NatMapP.F.add_mapsto_iff.
-        rewrite ! NatMapP.update_mapsto_iff.
-        rewrite ! NatMapP.F.add_mapsto_iff.
-        rewrite NatMapP.F.empty_mapsto_iff.
-        rewrite <- NatMapP.F.not_find_in_iff in NONE.
-        rewrite NatMapP.update_in_iff in NONE.
+        rewrite ! NatMapP.F.add_mapsto_iff
+          ! NatMapP.update_mapsto_iff
+          ! NatMapP.F.add_mapsto_iff
+          NatMapP.F.empty_mapsto_iff.
         split; i; des; subst; auto.
-        right. split; auto. ii. subst.
-        eapply Heq0. apply NatMapP.F.in_find_iff.
-        apply NatMap.find_1 in H. ii. clarify.
+        - right. split; auto. ii. subst.
+          apply NatMapP.F.find_mapsto_iff in H. clarify.
+        - right. split; auto. ii. clarify.
       }
-      { exfalso. apply disjoint_false_iff in Heq0. apply Heq0.
+      { exfalso. apply disjoint_false_iff in Heq. apply Heq.
         apply NatMapP.Disjoint_sym.
         eapply Disjoint_add. split.
-        { apply NatMapP.F.not_find_in_iff in NONE.
-          rewrite NatMapP.update_in_iff in NONE.
-          ii. eapply NONE; eauto.
-        }
+        { by apply NatMapP.F.not_find_in_iff in NONE. }
         { apply Disjoint_empty. }
       }
     Qed.
@@ -236,21 +230,19 @@ Module NatMapRA.
       rewrite op_unfold /add /singleton in FRAME.
 
       des_ifs. split; ss.
-      rewrite op_unfold /add unit_unfold /unit. ss. f_equal.
+      rewrite left_id. f_equal.
       apply disjoint_true_iff in Heq.
       apply NatMapP.Disjoint_sym in Heq.
       apply Disjoint_add in Heq. des.
       eapply eq_ext_is_eq. ii.
-      rewrite ! NatMapP.F.remove_mapsto_iff.
-      rewrite ! NatMapP.update_mapsto_iff.
-      rewrite ! NatMapP.F.add_mapsto_iff.
-      rewrite NatMapP.F.empty_mapsto_iff.
-      split; i; des; subst; auto.
-      { splits; auto. ii. subst. eapply Heq.
-        apply NatMapP.F.in_find_iff.
-        apply NatMap.find_1 in H. ii. clarify.
-      }
-      { split; auto. right; auto. }
+      rewrite ! NatMapP.F.remove_mapsto_iff
+        ! NatMapP.update_mapsto_iff
+        ! NatMapP.F.add_mapsto_iff
+        NatMapP.F.empty_mapsto_iff.
+      split; i; des; subst; auto; try done.
+      splits; auto. ii. subst. eapply Heq.
+      apply NatMapP.F.in_find_iff.
+      apply NatMap.find_1 in H. ii. clarify.
     Qed.
   End MAP.
 End NatMapRA.
@@ -261,7 +253,7 @@ From iris.bi Require Import derived_laws. Import bi.
 
 Section SUM.
   Context `{Σ :GRA.t}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition natmap_prop_sum A (f: NatMap.t A) (P: nat -> A -> iProp) :=
     list_prop_sum (fun '(k, v) => P k v) (NatMap.elements f).
@@ -586,9 +578,9 @@ Section UPDNATMAP.
       -∗
       (⌜NatMap.find k m = Some a⌝).
   Proof.
-    iIntros "B W". iCombine "B W" as "BW". iOwnWf "BW".
-    apply auth_both_dfrac_valid_discrete in H. des.
-    eapply NatMapRA.extends_singleton_iff in H0. auto.
+    iIntros "B W".
+    iCombine "B W" gives %(_&Ha&_)%auth_both_dfrac_valid_discrete.
+    by apply NatMapRA.extends_singleton_iff in Ha.
   Qed.
 
   Lemma NatMapRA_singleton_unique k0 k1 a0 a1
@@ -599,9 +591,7 @@ Section UPDNATMAP.
       -∗
       (⌜k0 <> k1⌝).
   Proof.
-    iIntros "W0 W1". iCombine "W0 W1" as "W". iOwnWf "W".
-    rewrite auth_frag_valid in H.
-    eapply singleton_unique in H. auto.
+    iIntros "W0 W1". by iCombine "W0 W1" gives %?%auth_frag_valid%singleton_unique.
   Qed.
 
   Lemma NatMapRA_remove m k a
@@ -612,8 +602,8 @@ Section UPDNATMAP.
       -∗
       #=>(OwnM (● (Map (NatMap.remove k m)))).
   Proof.
-    iIntros "B W". iCombine "B W" as "BW". iApply OwnM_Upd. 2: iFrame.
-    eapply auth_update_dealloc, remove_local_update.
+    rewrite bi.wand_curry -OwnM_op.
+    apply bi.entails_wand, OwnM_Upd, auth_update_dealloc, remove_local_update.
   Qed.
 
   Lemma NatMapRA_add m k a
@@ -625,8 +615,7 @@ Section UPDNATMAP.
                             ⋅ ◯ (singleton k a)))
          ).
   Proof.
-    iIntros "B". iApply OwnM_Upd. 2: iFrame.
-    eapply auth_update_alloc, add_local_update. auto.
+    by apply bi.entails_wand, OwnM_Upd, auth_update_alloc, add_local_update.
   Qed.
 
 End UPDNATMAP.

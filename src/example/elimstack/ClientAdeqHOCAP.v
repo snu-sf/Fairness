@@ -124,7 +124,7 @@ Module ElimStackClientCorrect.
     }
     unfold init_res. repeat rewrite <- GRA.embed_add.
     exists 4, 1. exists. lia.
-    eexists _. iIntros "(A & INIT)".
+    eexists _. iIntros "(A & INIT)". rewrite -OwnM_uPred_ownM_eq.
     iDestruct (init_sat 0 1 with "[$A $INIT]") as "RES"; [ss|].
 
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
@@ -142,7 +142,7 @@ Module ElimStackClientCorrect.
       red_tl_all.
       rewrite red_syn_tgt_interp_as. simpl. iFrame "∗#".
     }
-    iSplit; [|done].
+    rewrite right_id.
     { iDestruct (ElimStackClient_pop_sim _ _ γk k kt γs γpop) as "RES".
       red_tl_all. simpl.
       iEval (rewrite red_syn_wpsim) in "RES".

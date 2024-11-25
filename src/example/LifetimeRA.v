@@ -13,7 +13,7 @@ Module Lifetime.
 
     Context `{Σ : GRA.t}.
     Context `{@GRA.inG t Σ}.
-    Notation iProp := (iProp Σ).
+    Notation iProp := (iProp Σ) (only parsing).
 
     Definition pending (k: nat) {T : Type} (t : T) (q: Qp): iProp :=
       own k (to_agree (t↑ : leibnizO Any.t), OneShot.pending _ q).

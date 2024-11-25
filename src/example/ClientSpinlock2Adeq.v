@@ -3,6 +3,7 @@ From Paco Require Import paco.
 From iris.algebra Require Import cmra.
 Require Import Coq.Classes.RelationClasses Lia Program.
 From Fairness Require Import pind Axioms ITreeLib Red TRed IRed2 WFLibLarge.
+From Fairness.base_logic Require Import base_logic.
 From Fairness Require Import FairBeh Mod Concurrency Linking.
 From Fairness Require Import PCM IPM IPropAux.
 From Fairness Require Import IndexedInvariants OpticsInterp SimWeakest SimWeakestAdequacy.
@@ -124,12 +125,12 @@ Module ClientSpinlock2Correct.
         }
       }
     }
-    unfold init_res. repeat rewrite <- GRA.embed_add.
+    unfold init_res.
     exists 2, 1. exists. lia.
-    eexists _. iIntros "(A & INIT)".
+    eexists _. iIntros "(A & INIT)". rewrite uPred.ownM_op -!OwnM_uPred_ownM_eq.
     iPoseProof (init_sat with "[A INIT]") as "RES".
     { instantiate (1:=1). instantiate (1:=0). ss. }
-    { simpl. rewrite Own_op. iDestruct "A" as "[$ $]". iFrame. }
+    { simpl. iDestruct "A" as "[$ $]". iFrame. }
     iEval (rewrite red_syn_fairI) in "RES". simpl. iMod "RES".
     iDestruct "RES" as "(% & % & % & % & % & % & % & #INV1 & TGTST & #SPIN & TID1 & TID2)".
     iEval (rewrite red_syn_tgt_interp_as) in "TGTST". iPoseProof "TGTST" as "#TGTST".

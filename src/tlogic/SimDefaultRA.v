@@ -8,6 +8,8 @@ From Fairness Require Import Mod FairBeh.
 From Fairness Require Import Axioms.
 From Fairness Require Import NatMapRALarge RegionRA FairnessRA IndexedInvariants ObligationRA OpticsInterp.
 
+From Fairness Require Import FairBeh.
+
 Local Instance frame_exist_instantiate_disabled :
 FrameInstantiateExistDisabled := {}.
 
@@ -19,7 +21,7 @@ Set Implicit Arguments.
   Context `{IN: @GRA.inG (excl_authUR $ leibnizO (A * B)) Σ}.
   Context `{INA: @GRA.inG (excl_authUR $ leibnizO A) Σ}.
   Context `{INB: @GRA.inG (excl_authUR $ leibnizO B) Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition Own_pair (a : A) (b : B) : iProp :=
     OwnM (●E ((a, b) : leibnizO (A * B))).
@@ -112,7 +114,7 @@ Section INVARIANT.
   Context `{EDGERA: @GRA.inG EdgeRA Σ}.
   Context `{ONESHOTRA: @GRA.inG ArrowShotRA Σ}.
   Context `{ARROWRA: @GRA.inG ArrowRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   (* Works for formulas with index < x. *)
   Definition fairI x : iProp :=
@@ -160,9 +162,8 @@ Section INVARIANT.
       -∗
       ⌜tid0 <> tid1⌝.
   Proof.
-    iIntros "OWN0 OWN1". iCombine "OWN0 OWN1" as "OWN".
-    iOwnWf "OWN". apply auth_frag_valid,NatMapRALarge.singleton_unique in H.
-    iPureIntro. auto.
+    iIntros "OWN0 OWN1".
+    by iCombine "OWN0 OWN1" gives%?%auth_frag_valid%NatMapRALarge.singleton_unique.
   Qed.
 
   Lemma default_I_update_st_src x ths im_src im_tgt st_src0 st_tgt st_src' st_src1
@@ -174,9 +175,8 @@ Section INVARIANT.
       #=> (OwnM (◯E (Some st_src1: leibnizO (option state_src)))
                 ∗ default_I x ths im_src im_tgt st_src1 st_tgt).
   Proof.
-    unfold default_I. iIntros "[A [B [C [D [E [F G]]]]]] OWN".
-    iPoseProof (black_white_update with "B OWN") as "> [B OWN]".
-    iModIntro. iFrame.
+    iIntros "($&B&$&$&$&$&$&$) W".
+    by iMod (black_white_update with "B W") as "[$ $]".
   Qed.
 
   Lemma default_I_update_st_tgt x ths im_src im_tgt st_src st_tgt0 st_tgt' st_tgt1
@@ -188,9 +188,8 @@ Section INVARIANT.
       #=> (OwnM (◯E (Some st_tgt1 : leibnizO (option state_tgt)))
                 ∗ default_I x ths im_src im_tgt st_src st_tgt1).
   Proof.
-    unfold default_I. iIntros "[A [B [C [D [E [F G]]]]]] OWN".
-    iPoseProof (black_white_update with "C OWN") as "> [C OWN]".
-    iModIntro. iFrame.
+    iIntros "($&$&B&$&$&$&$) W".
+    by iMod (black_white_update with "B W") as "[$ $]".
   Qed.
 
   Lemma default_I_get_st_src x ths im_src im_tgt st_src st_tgt st
@@ -201,8 +200,8 @@ Section INVARIANT.
       -∗
       ⌜st_src = st⌝.
   Proof.
-    unfold default_I. iIntros "[A [B [C [D [E [F G]]]]]] OWN".
-    iPoseProof (black_white_equal with "B OWN") as "%". clarify.
+    iIntros "(_&B&_) W".
+    by iDestruct (black_white_equal with "B W") as %[= ?].
   Qed.
 
   Lemma default_I_get_st_tgt x ths im_src im_tgt st_src st_tgt st
@@ -213,8 +212,8 @@ Section INVARIANT.
       -∗
       ⌜st_tgt = st⌝.
   Proof.
-    unfold default_I. iIntros "[A [B [C [D [E [F G]]]]]] OWN".
-    iPoseProof (black_white_equal with "C OWN") as "%". clarify.
+    iIntros "(_&_&B&_) W".
+    by iDestruct (black_white_equal with "B W") as %[= ?].
   Qed.
 
   Lemma default_I_thread_alloc x n ths0 im_src im_tgt0 st_src st_tgt
@@ -586,6 +585,8 @@ Section INVARIANT.
 
 End INVARIANT.
 
+From Fairness.base_logic Require Import base_logic.
+
 Section INIT.
 
   Context `{Σ: GRA.t}.
@@ -658,7 +659,7 @@ Section INIT.
 
   Lemma default_initial_res_init x n (LT : n < x)
     :
-    (Own (default_initial_res))
+    (uPred_ownM (default_initial_res))
       ⊢
       (∀ ths (st_src : state_src) (st_tgt : state_tgt) im_tgt o,
           #=> (∃ im_src,
@@ -684,7 +685,7 @@ Section INIT.
       )).
   Proof.
     iIntros "OWN" (? ? ? ? ?).
-    unfold default_initial_res. rewrite !Own_op.
+    unfold default_initial_res. rewrite !uPred.ownM_op -!OwnM_uPred_ownM_eq.
     iDestruct "OWN" as "[[[[[[[[ENS WSATS] OWN0] [OWN1 OWN2]] [OWN3 OWN4]] OWN5] OWN6] OWN7] OWN8]".
     iPoseProof (black_white_update with "OWN1 OWN2") as "> [OWN1 OWN2]".
     iPoseProof (black_white_update with "OWN3 OWN4") as "> [OWN3 OWN4]".
@@ -744,7 +745,7 @@ Section SHAREDUTY.
 
   Context `{Σ : GRA.t}.
   Context `{SHAREDUTY : @GRA.inG ShareDutyRA Σ}.
-  Notation iProp := (iProp Σ).
+  Notation iProp := (iProp Σ) (only parsing).
 
   Definition _ShareDutyRA_init n : (excl_authUR $ leibnizO (list (nat * nat * Vars n))) :=
     ●E ([] : leibnizO _) ⋅ ◯E ([] : leibnizO _).
