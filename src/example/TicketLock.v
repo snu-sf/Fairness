@@ -97,7 +97,7 @@ Section SPEC.
       ∗ ⌜pass <= b⌝
       ∗ (●G γt (κu, γs, pass))
       ∗ ((⌜o = n⌝ ∗ (○G γt (κu, γs, pass)) ∗ P)
-        ∨ ◆[κu, l] ∗ (-[κu](0)-◇ ▿ γs tt) ∗ (⋈ [κu]) ∗ (△ γs 1) (* Promise to unlock *)
+        ∨ ◆[κu, l, υ] ∗ (-[κu](0)-◇ ▿ γs tt) ∗ (⋈ [κu]) ∗ (△ γs 1) (* Promise to unlock *)
           ∗ (∃ (κack : τ{nat, i}),
               (s_ticket_wait γt o [κu; γs; κack; pass])
               ∗ (s_ticket_issued γt o [κu; γs; κack; pass] ∨ (○G γt (κu, γs, pass) ∗ P))))
@@ -212,10 +212,6 @@ Section SPEC.
       iEval (red_tl_all; simpl) in "REST". iDestruct "REST" as "(WAIT & [ISSUED' | LW])".
       { iExFalso. iApply (Ticket_issued_twice with "ISSUED ISSUED'"). }
       iPoseProof (Ticket_issued_wait with "ISSUED WAIT") as "%EQ". clarify.
-      iAssert (#=> ◇[κu2](1, 2))%I with "[PC]" as "> PC".
-      { destruct (Nat.eq_dec l 1). subst. done.
-        iMod (pc_drop _ 1 l _ 2 2 with "PC") as "PC". auto. done.
-      }
       iMod ("TI_CLOSE" with "[- POST DUTY PC ISSUED PCS]") as "_".
       { iEval (unfold tklockInv; simpl; red_tl_all).
         iExists o2. iEval (red_tl; simpl). iExists n2. iEval (red_tl; simpl).
@@ -432,7 +428,7 @@ Section SPEC.
 
     (* YIELD *)
     rred2r.
-    iMod (pcs_drop (4+l) 2 with "PCS") as "PCS"; [lia..|].
+    iMod (pcs_drop (3+l) 2 with "PCS") as "PCS"; [lia..|].
     iMod (pcs_decr 1 _ with "PCS") as "[PCS' PCS]". auto.
     iMod (pcs_drop 2 2 with "PCS'") as "PCS'"; [lia..|].
     iMod (pcs_decr 1 _ with "PCS'") as "[PCS'' PCS']". auto.
