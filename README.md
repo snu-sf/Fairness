@@ -60,29 +60,30 @@ make build -j
 
 #### Section 5
 ##### In `src/tlogic`
-- sProp<sub>i</sub> (Sec 5, Fig.4): `sProp` in `LogicSyntaxHOAS.v`
-- types &#964;(τ) in sProp<sub>i</sub> (Sec 5, Fig.4): `type` in `TemporalLogic.v`
-- type interpretation 𝓘 of τ in sProp<sub>i</sub> (Sec 5, Fig.4): `type_interp` in `TemporalLogic.v`
-- type of predicates φ of sProp<sub>i</sub> (Sec 5, Fig.4): `sPropT` in `TemporalLogic.v`
-- atoms of sProp<sub>i</sub> (Sec 5, Fig.4): `Atom.t` in `TemporalLogic.v` (also includes additional constructors to facilitate the development)
-- semantic interpretation ⟦⋅⟧ of sProp<sub>i</sub> (Sec 5, Fig.4): `SyntaxI.interp` in `LogicSyntaxHOAS.v`
+- sProp<sub>i</sub> (Sec 5, Fig.5): `sProp` in `LogicSyntaxHOAS.v`
+- types &#964;(τ) in sProp<sub>i</sub> (Sec 5, Fig.5): `type` in `TemporalLogic.v`
+- type interpretation 𝓘 of τ in sProp<sub>i</sub> (Sec 5, Fig.5): `type_interp` in `TemporalLogic.v`
+- type of predicates φ of sProp<sub>i</sub> (Sec 5, Fig.5): `sPropT` in `TemporalLogic.v`
+- atoms of sProp<sub>i</sub> (Sec 5, Fig.5): `Atom.t` in `TemporalLogic.v` (also includes additional constructors to facilitate the development)
+- semantic interpretation ⟦⋅⟧ of sProp<sub>i</sub> (Sec 5, Fig.5): `SyntaxI.interp` in `LogicSyntaxHOAS.v`
 - stratified world satisfaction W<sub>i</sub> (Sec 5): `syn_wsat` in `TemporalLogic.v`
 - worlds satisfaction Ws<sub>n</sub> (Sec 5): `syn_wsats` in `TemporalLogic.v`
-- fancy update modality (Sec 5.3, Fig.5): `FUpd` in `IndexedInvariants.v` and `syn_fupd` in `TemporalLogic.v`
-- INV-ALLOC (Sec 3.3, Fig.2): `FUpd_alloc` in `IndexedInvariants.v`
-- INV-OPEN (Sec 5.3, Fig.5): `FUpd_open` in `IndexedInvariants.v`
-- INV-CLOSE (Sec 5.3, Fig.5): `FUpd_open` in `IndexedInvariants.v`
+- FUPD-DEF (Sec 5.3, Fig 6): `FUpd` in `IndexedInvariants.v` and `syn_fupd` in `TemporalLogic.v`
+- INV-ALLOC (Sec 5.3, Fig.6): `FUpd_alloc` in `IndexedInvariants.v`
+- INV-OPEN (Sec 5.3, Fig.6): `FUpd_open` in `IndexedInvariants.v`
+- INV-CLOSE (Sec 5.3, Fig.6): `FUpd_open` in `IndexedInvariants.v`
 
 #### Section 6
 ##### In `src/tlogic`
-- delayed promise (Sec 6, Fig.6): `delayed_tpromise` in `LiveObligations.v`
-- activation token &#10710;(⧖) (Sec 6, Fig.6): `pending_obligation` in `LiveObligations.v`
-- activated token &#8904;(⋈) (Sec 6, Fig.6): `active_obligation` in `LiveObligations.v`
-- ACTIVATE (Sec 6, Fig.6): `pending_active` in `LiveObligations.v`
-- NOT-ACT (Sec 6, Fig.6): `pending_not_active` in `LiveObligations.v`
+- delayed promise (Sec 6, Fig.7): `delayed_tpromise` in `LiveObligations.v`
+- activation token &#10710;(⧖) (Sec 6, Fig.7): `pending_obligation` in `LiveObligations.v`
+- activated token &#8904;(⋈) (Sec 6, Fig.7): `active_obligation` in `LiveObligations.v`
+- ACTIVATE (Sec 6, Fig.7): `pending_active` in `LiveObligations.v`
+- NOT-ACT (Sec 6, Fig.7): `pending_not_active` in `LiveObligations.v`
 - OMAP-ADD2 (Sec 6.2, Fig.3): `duty_add` in `LiveObligations.v`
-- DP-ACT (Sec 6, Fig.6): `activate_tpromise` in `LiveObligations.v`
-- YIELD-TGT2 (Sec 6, Fig.6): `wpsim_yieldR_gen_pending` in `SimWeakest.v`
+- DP-ACT (Sec 6, Fig.7): `activate_tpromise` in `LiveObligations.v`
+- YIELD-TGT2 (Sec 6, Fig.7): `wpsim_yieldR_gen_pending` in `SimWeakest.v`
+- TODO: PROM-DEF은?
 
 ### Case Studies and Examples
 ##### In `src/example`
