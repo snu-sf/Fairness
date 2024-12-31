@@ -38,7 +38,6 @@ Section frac.
   Qed.
   Canonical Structure fracR := discreteR frac frac_ra_mixin.
 
-  Proof. apply discrete_cmra_discrete. Qed. *)
   Global Instance frac_full_exclusive : Exclusive 1%Qp.
   Proof. intros p. apply Qp.not_add_le_l. Qed.
   Global Instance frac_cancelable (q : frac) : Cancelable q.
