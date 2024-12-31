@@ -1,5 +1,5 @@
 From sflib Require Import sflib.
-(* Port of https://gitlab.mpi-sws.org/iris/iris/-/blob/master/iris/base_logic/lib/ghost_var.v into FOS style iProp *)
+(* Port of https://gitlab.mpi-sws.org/iris/iris/-/blob/master/iris/base_logic/lib/ghost_var.v into LILO style iProp *)
 (** A simple "ghost variable" of arbitrary type with fractional ownership.
 Can be mutated when fully owned. *)
 

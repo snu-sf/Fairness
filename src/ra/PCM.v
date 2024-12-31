@@ -191,8 +191,6 @@ Module URA.
     core_idem: forall a, core (core a) = core a;
     core_mono: forall a b, exists c, core (add a b) = add (core a) c;
 
-    (* extends := fun a b => exists ctx, add a ctx = b; *)
-    (* updatable := fun a b => forall ctx, wf (add a ctx) -> wf (add b ctx); *)
     extends := fun a b => exists ctx, add a ctx = b;
     updatable := fun a b => forall ctx, wf (add a ctx) -> wf (add b ctx);
     updatable_set := fun a B => forall ctx (WF: wf (add a ctx)),
@@ -233,7 +231,6 @@ Module URA.
     { apply core_id. }
   Qed.
 
-  (*** TODO: remove redundancy with "updatable_horizontal" above ***)
   Lemma updatable_add
         `{M: t}
         a0 a1
@@ -388,11 +385,8 @@ Module URA.
   Next Obligation. ii. r in H. r in H0. eauto. Qed.
 
   Lemma unfold_add `{M: t}: add = _add. Proof. unfold add. unseal "ra". reflexivity. Qed.
-  (* Hint Resolve unfold_add. *)
   Lemma unfold_wf `{M: t}: wf = _wf. Proof. unfold wf. unseal "ra". reflexivity. Qed.
-  (* Hint Resolve unfold_wf. *)
   Lemma unfold_wf2 `{M: t}: forall x, wf x <-> _wf x. Proof. unfold wf. unseal "ra". reflexivity. Qed.
-  (* Hint Resolve unfold_wf2. *)
   Opaque add wf.
 
 
@@ -527,7 +521,6 @@ Module URA.
   Next Obligation. exists b. auto. Qed.
 End URA.
 
-(* Coercion URA.to_RA: URA.t >-> RA.t. *)
 Coercion RA.car: RA.t >-> Sortclass.
 Coercion URA.car: URA.t >-> Sortclass.
 
@@ -787,7 +780,6 @@ Qed.
 End of_RA.
 End of_RA.
 
-(* Coercion to_RA: t >-> RA.t. *)
 Coercion of_RA.t: RA.t >-> URA.t.
 
 
@@ -869,8 +861,6 @@ Coercion Excl.option_coercion: option >-> Excl.car.
 Module Auth.
 Section AUTH.
 
-(* Variable (M: URA.t). *)
-
 Inductive car `{M: URA.t}: Type :=
 | frag (f: M)
 | excl (e: M) (f: M)
@@ -949,7 +939,6 @@ Theorem auth_update
     <<UPD: URA.updatable ((black a) ⋅ (white b)) ((black a') ⋅ (white b'))>>
 .
 Proof.
-  (* rr. ur. ii; des_ifs. unseal "ra". des. *)
   rr. rewrite URA.unfold_add. rewrite URA.unfold_wf. ii. unseal "ra". ss. des_ifs. des.
   r in UPD. r in H. des; clarify. r in H. des; clarify.
   rewrite URA.unit_idl in *. ss.
@@ -966,9 +955,6 @@ Theorem auth_dup_black
     <<DUP: URA.updatable (t:=t M) (black a) ((black a) ⋅ (white ca))>>
 .
 Proof.
-  (* r. rewrite <- unit_id at 1. *)
-  (* eapply auth_update. rr. ii. des. rewrite unit_idl in FRAME. subst. *)
-  (* esplits; eauto. rewrite add_comm; ss. *)
   rr. rewrite URA.unfold_add. rewrite URA.unfold_wf. ii. ss. des_ifs. unseal "ra". ss. des.
   rr in H. des. rewrite URA.unit_idl in *. esplits; eauto.
   rewrite CORE. eexists. rewrite <- URA.add_assoc. rewrite H. rewrite URA.add_comm. eauto.
@@ -1058,9 +1044,6 @@ Proof. ur in WF. des; ss. Qed.
 End AUTH.
 End Auth.
 
-(**********************************************************************************)
-(*** For backward compatibility, I put below definitions "outside" Auth module. ***)
-(*** TODO: put it inside ***)
 
 
 
@@ -1243,12 +1226,10 @@ Module GRA.
   Class t: Type := __GRA__INTERNAL__: (nat -> URA.t).
   Class inG (RA: URA.t) (Σ: t) := InG {
     inG_id: nat;
-    (* inG_prf: Eq (GRA inG_id) RA; *)
     inG_prf: RA = Σ inG_id;
   }
   .
   Class subG (Σ0 Σ1: t) := SubG i : { j | Σ0 i = Σ1 j }.
-  (* Class subG (GRA0 GRA1: t) := SubG { subG_prf: forall i, { j | GRA0 i = GRA1 j } }. *)
 
   Definition of_list (RAs: list URA.t): t := fun n => List.nth n RAs (of_RA.t RA.empty).
 
@@ -1360,11 +1341,6 @@ Module GRA.
       i. subst. apply (cast_ra inG_prf get).
     Defined.
 
-    (* Program Definition set_lifted: URA.car (t:=construction gra) -> unit := *)
-    (*   fun n => if Nat.eq_dec n inG_id then _ else URA.unit. *)
-    (* Next Obligation. *)
-    (*   apply (ra_transport inG_prf get). *)
-    (* Defined. *)
     End GETSET.
 
     Section HANDLER.
@@ -1391,17 +1367,10 @@ Module GRA.
       i. unshelve econs; eauto. unfold GRA. symmetry. eapply nth_error_nth; eauto.
     Qed.
 
-    (* Let GRA2: RA.t := URA.pointwise_dep GRA. *)
-    (* Goal @RA.car GRA2 = forall k, (@RA.car (GRA k)). ss. Qed. *)
   End CONSTRUCTION.
-
-  (* Definition extends (RA0 RA1: URA.t): Prop := *)
-  (*   exists c, URA.prod RA0 c = RA1 *)
-  (* . *)
 
   Class inG2 (RA GRA: URA.t): Prop := {
     GRA_data: t;
-    (* GRA_prf:  *)
     inG2_id: nat;
     inG2_prf: GRA_data inG2_id = RA;
   }
@@ -1442,32 +1411,7 @@ End GRA.
 Coercion GRA.to_URA: GRA.t >-> URA.t.
 
 Global Opaque GRA.to_URA.
-(* Definition ε `{Σ: GRA.t}: Σ := URA.unit. *)
 
-(***
-Choose: non-det
-Take: angelic non-det
-(*** empty choose : NB ***)
-(*** empty take : UB ***)
-x <- Choose X ;; guarantee (P x) ;; k x   (~=) x <- Choose { X | P x } ;; k x
-x <- Take X   ;; assume (P x)    ;; k x   (~=) x <- Take { X | P x }   ;; k x
-guarantee P ;; assume P ;; k              (~=) guarantee P ;; k
-x <- Take X ;; pure ;; k x                (>=) pure ;; x <- Take X ;; k x
-pure ;; x <- Choose X ;; k x              (>=) x <- Choose X ;; pure ;; k x
-______________caller______________    _________________callee_________________   _caller_
-x0 <- Choose X ;; guarantee (P x0) ;; (x1 <- Take X ;; assume (P x1) ;; k1 x1) ;; k0 x0
-(<=)
-x0 <- Choose X ;; x1 <- Take X ;; guarantee (P x0) ;; assume (P x1) ;; k1 x1 ;; k0 x0
-(<=)
-x <- Choose X ;; guarantee (P x) ;; assume (P x) ;; k1 x ;; k0 x
-(<=)
-x <- Choose X ;; guarantee (P x) ;; k1 x ;; k0 x
-Goal forall X Y (k: X -> Y),
-    x <- trigger (EChoose X) ;; Ret (k x) =
-    y <- trigger (EChoose {y | exists x, y = k x}) ;; Ret (proj1_sig y)
-.
-Abort.
-***)
 
 
 Declare Scope ra_scope.

@@ -155,9 +155,6 @@ Section MEMRA.
   Definition wmemRA: URA.t := (Loc.t ==> (Auth.t (Excl.t Cell.t)))%ra.
   Context `{WMEMRA: @GRA.inG wmemRA Γ}.
   
-  (* Local Notation index := nat.
-  Context `{Vars : index -> Type}.0 *)
-
   Definition memory_resource_black (m: WMem.t): wmemRA :=
     fun loc =>
       Auth.black (Excl.just (m.(WMem.memory) loc): Excl.t Cell.t).

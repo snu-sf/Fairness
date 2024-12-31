@@ -10,8 +10,6 @@ Section gset.
   Context `{Countable K}.
   Implicit Types X Y : gset K.
 
-  (* Canonical Structure gsetO := discreteO (gset K). *)
-
   Local Instance gset_valid_instance : Valid (gset K) := λ _, True.
   Local Instance gset_unit_instance : Unit (gset K) := (∅ : gset K).
   Local Instance gset_op_instance : Op (gset K) := union.
@@ -34,9 +32,6 @@ Section gset.
     intros X. by rewrite gset_core idemp_L.
   Qed.
   Canonical Structure gsetR := discreteR (gset K) gset_ra_mixin.
-
-  (* Global Instance gset_cmra_discrete : CmraDiscrete gsetR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Lemma gset_ucmra_mixin : UcmraMixin (gset K).
   Proof. split; [ done | | done ]. intros X. by rewrite gset_op left_id_L. Qed.
@@ -134,9 +129,6 @@ Section gset_disj.
     - intros [X1|] [X2|]; gset_disj_solve.
   Qed.
   Canonical Structure gset_disjR := discreteR (gset_disj K) gset_disj_ra_mixin.
-
-  (* Global Instance gset_disj_cmra_discrete : CmraDiscrete gset_disjR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Lemma gset_disj_ucmra_mixin : UcmraMixin (gset_disj K).
   Proof. split; try apply _ || done. intros [X|]; gset_disj_solve. Qed.

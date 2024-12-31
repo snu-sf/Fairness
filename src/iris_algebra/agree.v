@@ -34,20 +34,15 @@ lemma [to_agree_uninjN] instead. In general, [agree_car] should ONLY be used
 internally in this file.  *)
 Record agree (A : Type) : Type := {
   agree_car : option A;
-  (* agree_not_None : bool_decide (agree_car = None) = false *)
 }.
 Global Arguments agree_car {_} _.
-(* Global Arguments agree_not_None {_} _. *)
 Local Coercion agree_car : agree >-> option.
 
 Definition to_agree {A} (a : A) : agree A :=
   {|
     agree_car := Some a;
-    (* agree_not_None := eq_refl  *)
   |}.
 
-(* Lemma elem_of_agree {A} (x : agree A) : ∃ a, a ∈ agree_car x.
-Proof. destruct x as [[|a ?] ?]; set_solver+. Qed. *)
 Lemma agree_eq {A} (x y : agree A) : agree_car x = agree_car y → x = y.
 Proof.
   destruct x as [[a|]], y as [[b|]]; try done.
@@ -85,9 +80,6 @@ Proof. ii. unfold op,agree_op_instance. des_ifs. Qed.
 Lemma agree_idemp x : x ⋅ x = x.
 Proof. unfold op,agree_op_instance. des_ifs. Qed.
 
-(* Local Instance agree_valid_proper : Proper (equiv ==> iff) (@Valid (agree A) _ n).
-Proof. move=> x y /equiv_dist H. by split; rewrite (H n). Qed. *)
-
 Local Instance agree_op_proper : Proper ((=) ==> (=) ==> (=)) (op (A := agree A)).
 Proof. intros x1 x2 -> y1 y2 ->. done. Qed.
 
@@ -121,35 +113,9 @@ Proof. rewrite /CmraTotal; eauto. Qed.
 Global Instance agree_core_id x : CoreId x.
 Proof. by constructor. Qed.
 
-(* Global Instance agree_cmra_discrete : TypeDiscrete A → CmraDiscrete agreeR.
-Proof.
-  intros HD. split.
-  - intros x y [H H'] n; split=> a; setoid_rewrite <-(discrete_iff_0 _ _); auto.
-  - intros x; rewrite agree_valid_def=> Hv n. apply agree_valid_def=> a b ??.
-    apply discrete_iff_0; auto.
-Qed. *)
-
 Global Instance to_agree_proper : Proper ((=@{A}) ==> (=)) to_agree.
 Proof. by intros a1 a2 ->. Qed.
 
-(* Global Instance to_agree_discrete a : Discrete a → Discrete (to_agree a).
-Proof.
-  intros ? y [H H'] n; split.
-  - intros a' ->%elem_of_list_singleton. destruct (H a) as [b ?]; first by left.
-    exists b. by rewrite -discrete_iff_0.
-  - intros b Hb. destruct (H' b) as (b'&->%elem_of_list_singleton&?); auto.
-    exists a. by rewrite elem_of_list_singleton -discrete_iff_0.
-Qed. *)
-
-(* Lemma agree_op_inv x y : ✓ (x ⋅ y) → x = y.
-Proof.
-  intros ?. apply equiv_dist=> n. by apply agree_op_invN, cmra_valid_valid.
-Qed. *)
-
-(* Global Instance to_agree_injN n : Inj (dist n) (dist n) (to_agree).
-Proof.
-  move=> a b [_] /=. setoid_rewrite elem_of_list_singleton. naive_solver.
-Qed. *)
 Global Instance to_agree_inj : Inj (=@{A}) (=) (to_agree).
 Proof. intros a b EQ. unfold to_agree in *. injection EQ. done. Qed.
 
@@ -228,22 +194,4 @@ Section agree_map.
     apply option_fmap_ext. done.
   Qed.
 
-  (* TODO: This requires agree to have a addition that does not check for invalid elements, this is why Iris uses a list? *)
-  (* TODO: this is needed fore `view.v` *)
-  (* Global Instance agree_map_morphism : CmraMorphism (agree_map f).
-  Proof.
-    split.
-    - intros x. rewrite !agree_valid_def=> Hv.
-      destruct Hv as [a Hv]. exists (f a).
-      unfold agree_map. destruct x as [[x|]]; [|done].
-      simpl in *. injection Hv as ->. done.
-    - done.
-    - intros [[x|]] [[y|]]; simpl in *.
-      all: unfold agree_map,op,cmra_op.
-      all: simpl in *.
-      all: unfold agree_op_instance.
-      all: des_ifs.
-      simpl.
-      unfold Proper in *.
-  Qed. *)
 End agree_map.

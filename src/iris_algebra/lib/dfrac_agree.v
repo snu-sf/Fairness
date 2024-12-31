@@ -19,18 +19,12 @@ Section lemmas.
   Context {A : Type}.
   Implicit Types (q : Qp) (d : dfrac) (a : A).
 
-  (* Global Instance to_dfrac_agree_ne d : NonExpansive (@to_dfrac_agree A d).
-  Proof. solve_proper. Qed. *)
   Global Instance to_dfrac_agree_proper d : Proper ((=) ==> (=)) (@to_dfrac_agree A d).
   Proof. solve_proper. Qed.
 
   Global Instance to_dfrac_agree_exclusive a :
     Exclusive (to_dfrac_agree (DfracOwn 1) a).
   Proof. apply _. Qed.
-  (* Global Instance to_dfrac_agree_discrete d a : Discrete a → Discrete (to_dfrac_agree d a).
-  Proof. apply _. Qed. *)
-  (* Global Instance to_dfrac_agree_injN n : Inj2 (dist n) (dist n) (dist n) (@to_dfrac_agree A).
-  Proof. by intros d1 a1 d2 a2 [??%(inj to_agree)]. Qed. *)
   Global Instance to_dfrac_agree_inj : Inj2 (=) (=) (=) (@to_dfrac_agree A).
   Proof. intros d1 a1 d2 a. unfold to_dfrac_agree. injection 1 as -> ->. done. Qed.
 
@@ -140,13 +134,6 @@ Section lemmas.
   Qed.
 
 End lemmas.
-
-(* Definition dfrac_agreeRF (F : oFunctor) : rFunctor :=
-  prodRF (constRF dfracR) (agreeRF F).
-
-Global Instance dfrac_agreeRF_contractive F :
-  oFunctorContractive F → rFunctorContractive (dfrac_agreeRF F).
-Proof. apply _. Qed. *)
 
 Global Typeclasses Opaque to_dfrac_agree.
 (* [to_frac_agree] is deliberately transparent to reuse the [to_dfrac_agree] instances *)

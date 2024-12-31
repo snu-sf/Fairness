@@ -10,7 +10,6 @@ Section ELIMSTACK.
   Context {ident : ID}.
 
   Definition push_loop :
-    (* ktree (threadE void unit) (SCMem.val * SCMem.val) unit *)
     ktree (threadE ident state) (SCMem.val * SCMem.val) unit
     :=
     fun '(s, val) => ITree.iter (fun (_ : unit) =>
@@ -42,7 +41,6 @@ Section ELIMSTACK.
       push_loop (s,val).
 
   Definition pop_loop :
-    (* ktree (threadE void unit) SCMem.val (option (SCMem.val) *)
     ktree (threadE ident state) SCMem.val (option (SCMem.val))
     :=
     fun s =>
@@ -78,20 +76,6 @@ Section ELIMSTACK.
       _ <- trigger Yield;;
       pop_loop s.
 
-    (** TODO : more rules for module composition. *)
-    (* Definition omod : Mod.t := *)
-    (*   Mod.mk *)
-    (*     (* tt *) *)
-    (*     (Mod.st_init Client) *)
-    (*     (Mod.get_funs [("push", Mod.wrap_fun push); *)
-    (*                    ("pop", Mod.wrap_fun pop)]) *)
-    (* . *)
-
-    (* Definition module gvs : Mod.t := *)
-    (*   OMod.close *)
-    (*     (omod) *)
-    (*     (SCMem.mod gvs) *)
-    (* . *)
 
     Lemma push_loop_red s val :
       push_loop (s, val) =

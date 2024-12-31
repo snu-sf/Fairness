@@ -7,15 +7,6 @@ From iris.prelude Require Import prelude options.
 
 Local Open Scope iris_algebra_scope.
 
-(* Global Instance map_seq_ne {A : Type} start :
-  NonExpansive (map_seq (M:=gmap nat A) start).
-Proof.
-  intros n l1 l2 Hl. revert start.
-  induction Hl; intros; simpl; repeat (done || f_equiv).
-Qed. *)
-
-(* Global Arguments gmapO _ {_ _} _. *)
-
 Section ofe.
 Context `{Countable K} {A : Type}.
 Implicit Types m : gmap K A.
@@ -55,9 +46,6 @@ Proof.
   intros Hf m1 m1' Hm1 m2 m2' Hm2. apply merge_ne; try done.
 Qed.
 
-(* Global Instance gmap_union_ne `{Countable K} {A : Type} :
-  NonExpansive2 (union (A:=gmap K A)).
-Proof. intros n. apply union_with_ne. by constructor. Qed. *)
 Global Instance gmap_disjoint_ne `{Countable K} {A : Type} :
   Proper (eq ==> eq ==> iff) (map_disjoint (M:=gmap K) (A:=A)).
 Proof.
@@ -147,9 +135,6 @@ Proof.
     + revert Hz2i. case: (y2!!i)=>[?|] //.
 Qed.
 Canonical Structure gmapR := Cmra (gmap K A) gmap_cmra_mixin.
-
-(* Global Instance gmap_cmra_discrete : CmraDiscrete A → CmraDiscrete gmapR.
-Proof. split; [apply _|]. intros m ? i. by apply: cmra_discrete_valid. Qed. *)
 
 Lemma gmap_ucmra_mixin : UcmraMixin (gmap K A).
 Proof.
@@ -585,72 +570,3 @@ Proof.
   rewrite !lookup_fmap.
   destruct (m !! i) eqn:?; eauto. simpl. f_equal. by eapply Hf.
 Qed.
-(* Global Instance gmap_fmap_cmra_morphism `{Countable K} {A B : cmra} (f : A → B)
-  `{!CmraMorphism f} : CmraMorphism (fmap f : gmap K A → gmap K B).
-Proof.
-  split; try apply _.
-  - by intros m ? i; rewrite lookup_fmap; apply (cmra_morphism_valid _).
-  - intros m. Print omap. apply (@Some_proper _ (=)). rewrite lookup_fmap !lookup_omap lookup_fmap.
-    case: (m!!i)=>//= ?. apply cmra_morphism_pcore, _.
-  - intros m1 m2 i. by rewrite lookup_op !lookup_fmap lookup_op cmra_morphism_op.
-Qed.
-Definition gmapO_map `{Countable K} {A B} (f: A -n> B) :
-  gmapO K A -n> gmapO K B := OfeMor (fmap f : gmapO K A → gmapO K B).
-Global Instance gmapO_map_ne `{Countable K} {A B} :
-  NonExpansive (@gmapO_map K _ _ A B).
-Proof.
-  intros n f g Hf m k; rewrite /= !lookup_fmap.
-  destruct (_ !! k) eqn:?; simpl; constructor; apply Hf.
-Qed.
-
-Program Definition gmapOF K `{Countable K} (F : oFunctor) : oFunctor := {|
-  oFunctor_car A _ B _ := gmapO K (oFunctor_car F A B);
-  oFunctor_map A1 _ A2 _ B1 _ B2 _ fg := gmapO_map (oFunctor_map F fg)
-|}.
-Next Obligation.
-  by intros K ?? F A1 ? A2 ? B1 ? B2 ? n f g Hfg; apply gmapO_map_ne, oFunctor_map_ne.
-Qed.
-Next Obligation.
-  intros K ?? F A ? B ? x. rewrite /= -{2}(map_fmap_id x).
-  apply map_fmap_equiv_ext=>y ??; apply oFunctor_map_id.
-Qed.
-Next Obligation.
-  intros K ?? F A1 ? A2 ? A3 ? B1 ? B2 ? B3 ? f g f' g' x. rewrite /= -map_fmap_compose.
-  apply map_fmap_equiv_ext=>y ??; apply oFunctor_map_compose.
-Qed.
-Global Instance gmapOF_contractive K `{Countable K} F :
-  oFunctorContractive F → oFunctorContractive (gmapOF K F).
-Proof.
-  by intros ? A1 ? A2 ? B1 ? B2 ? n f g Hfg; apply gmapO_map_ne, oFunctor_map_contractive.
-Qed.
-
-Program Definition gmapURF K `{Countable K} (F : rFunctor) : urFunctor := {|
-  urFunctor_car A _ B _ := gmapUR K (rFunctor_car F A B);
-  urFunctor_map A1 _ A2 _ B1 _ B2 _ fg := gmapO_map (rFunctor_map F fg)
-|}.
-Next Obligation.
-  by intros K ?? F A1 ? A2 ? B1 ? B2 ? n f g Hfg; apply gmapO_map_ne, rFunctor_map_ne.
-Qed.
-Next Obligation.
-  intros K ?? F A ? B ? x. rewrite /= -{2}(map_fmap_id x).
-  apply map_fmap_equiv_ext=>y ??; apply rFunctor_map_id.
-Qed.
-Next Obligation.
-  intros K ?? F A1 ? A2 ? A3 ? B1 ? B2 ? B3 ? f g f' g' x. rewrite /= -map_fmap_compose.
-  apply map_fmap_equiv_ext=>y ??; apply rFunctor_map_compose.
-Qed.
-Global Instance gmapURF_contractive K `{Countable K} F :
-  rFunctorContractive F → urFunctorContractive (gmapURF K F).
-Proof.
-  by intros ? A1 ? A2 ? B1 ? B2 ? n f g Hfg; apply gmapO_map_ne, rFunctor_map_contractive.
-Qed.
-
-Program Definition gmapRF K `{Countable K} (F : rFunctor) : rFunctor := {|
-  rFunctor_car A _ B _ := gmapR K (rFunctor_car F A B);
-  rFunctor_map A1 _ A2 _ B1 _ B2 _ fg := gmapO_map (rFunctor_map F fg)
-|}.
-Solve Obligations with apply gmapURF.
-
-Global Instance gmapRF_contractive K `{Countable K} F :
-  rFunctorContractive F → rFunctorContractive (gmapRF K F).
-Proof. apply gmapURF_contractive. Qed. *)

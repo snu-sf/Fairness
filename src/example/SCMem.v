@@ -324,38 +324,6 @@ Module SCMem.
     exfalso. unfold has_permission, unwrap_ptr in *. des_ifs.
   Qed.
 
-  (* Definition memory_comparable (m : SCMem.t) (v : SCMem.val) : Prop := *)
-  (*   match (SCMem.unwrap_ptr v) with *)
-  (*   | Some (vb, vo) => *)
-  (*       match (SCMem.contents m) vb vo with *)
-  (*       | Some vv => True *)
-  (*       | None => False *)
-  (*       end *)
-  (*   | _ => True *)
-  (*   end. *)
-
-  (* Lemma memory_comparable_store m m' l stv v : *)
-  (*   SCMem.store m l stv = Some m' -> *)
-  (*   memory_comparable m v -> memory_comparable m' v. *)
-  (* Proof. *)
-  (*   unfold SCMem.store, SCMem.mem_update, SCMem.unwrap_ptr. *)
-  (*   des_ifs. i. des_ifs. unfold memory_comparable in *. des_ifs. ss. des_ifs.     *)
-  (* Qed. *)
-
-  (* Lemma val_compare_None m v1 v2 : *)
-  (*   SCMem.val_compare m v1 v2 = None -> *)
-  (*   (memory_comparable m v1 /\ memory_comparable m v2) -> False. *)
-  (* Proof. *)
-  (*   unfold memory_comparable. unfold SCMem.val_compare, SCMem.has_permission. *)
-  (*   i. des_ifs; des; clarify. *)
-  (* Qed. *)
-
-  (* Lemma has_permission_comparable m v : *)
-  (*   has_permission m v = true -> memory_comparable m v. *)
-  (* Proof. *)
-  (*   unfold has_permission, memory_comparable. i. des_ifs. *)
-  (* Qed. *)
-
 End SCMem.
 
 Coercion SCMem.val_nat : nat >-> SCMem.val.
@@ -851,26 +819,6 @@ Section MEMRA.
     all: rewrite dfrac_agree_op_valid in H; des; done.
   Qed.
 
-  (* Lemma memory_ra_compare_ptr_both_pers_left m l0 v0 l1 v1
-    :
-    (memory_black m)
-      -∗
-      (points_to l0 v0 false)
-      -∗
-      (points_to l1 v1 true)
-      -∗
-      (⌜SCMem.compare m l0 l1 = Some false⌝).
-  Proof.
-    iIntros "BLACK POINT0 POINT1". ss.
-    iPoseProof (memory_ra_load with "BLACK POINT0") as "%". des.
-    iPoseProof (memory_ra_load with "BLACK POINT1") as "%". des.
-    unfold SCMem.compare, SCMem.val_compare. des_ifs.
-    ss. des_ifs. iCombine "POINT0 POINT1" as "POINT". iOwnWf "POINT".
-    ur in H. ur in H. specialize (H n). specialize (H n0). ur in H.
-    unfold points_to_white in H. des_ifs. inv Heq1.
-    apply dfrac_agree_op_valid in H. des. done.
-  Qed. *)
-
   (* Persistency lemmas *)
 
   Global Instance points_to_pers_persistent l v : Persistent (points_to l v true).
@@ -878,8 +826,6 @@ Section MEMRA.
     unfold points_to,points_to_white. des_ifs; try apply _.
     unfold Persistent. iIntros "H".
     iDestruct (own_persistent with "H") as "H".
-    (* simpl. *)
-    (* TODO: simpler proof? *)
     assert ((URA.core ((λ blk' ofs' : nat, _) : memRA)) = λ blk' ofs' : nat, (
                   if PeanoNat.Nat.eq_dec blk' n
                   then

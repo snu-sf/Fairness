@@ -22,7 +22,7 @@ Module Client01.
       :=
       fun _ =>
         _ <- trigger Yield;;
-        _ <- (OMod.call (R:=unit) "store" (X, (1 : SCMem.val)));; (*TODO : val_nat*)
+        _ <- (OMod.call (R:=unit) "store" (X, (1 : SCMem.val)));;
         _ <- trigger Yield;;
         Ret (0 : SCMem.val).
 
@@ -344,7 +344,6 @@ Section SPEC.
 
     Variable tid1 tid2 : thread_id.
     Let init_ord := Ord.O.
-    (* Let init_ord := layer 2 1. *)
     Let init_ths :=
           (NatStructsLarge.NatMap.add
              tid1 tt
@@ -353,44 +352,6 @@ Section SPEC.
                 (NatStructsLarge.NatMap.empty unit))).
 
     Let idx := 1.
-
-    (* Lemma init_sat E (H_TID : tid1 <> tid2) : *)
-    (*   (OwnM (memory_init_resource Client01.gvs)) *)
-    (*     ∗ *)
-    (*     (WSim.initial_prop *)
-    (*        Client01Spec.module Client01.module *)
-    (*        (Vars:=@sProp STT Γ) (Σ:=Σ) *)
-    (*        (STATESRC:=@SRA.in_subG Γ Σ sub _ _STATESRC) *)
-    (*        (STATETGT:=@SRA.in_subG Γ Σ sub _ _STATETGT) *)
-    (*        (IDENTSRC:=@SRA.in_subG Γ Σ sub _ _IDENTSRC) *)
-    (*        (IDENTTGT:=@SRA.in_subG Γ Σ sub _ _IDENTTGT) *)
-    (*        (ARROWRA:=@_ARROWRA STT Γ Σ TLRAS) *)
-    (*        idx init_ths init_ord) *)
-    (*     ⊢ *)
-    (*     =| 1+idx |=(fairI *)
-    (*                   (IDENTTGT:=@SRA.in_subG Γ Σ sub _ _IDENTTGT) *)
-    (*                   (ARROWRA:=@_ARROWRA STT Γ Σ TLRAS) *)
-    (*                   (1+idx) (ident_tgt:=tgt_ident))={ E, E }=> *)
-    (*         (∃ γk k, *)
-    (*             (inv idx N_Client01 (client01Inv γk k idx)) *)
-    (*               ∗ (tgt_interp_as *)
-    (*                    (STATETGT:=@SRA.in_subG Γ Σ sub _ _STATETGT) *)
-    (*                    (n:=idx) sndl (fun m => (s_memory_black m))) *)
-    (*               ∗ ((own_thread tid1) *)
-    (*                    ∗ (duty *)
-    (*                           (IDENTTGT:=@SRA.in_subG Γ Σ sub _ _IDENTTGT) *)
-    (*                           (ARROWRA:=@_ARROWRA STT Γ Σ TLRAS) *)
-    (*                           (v:=idx) inlp tid1 *)
-    (*                           [(k, 0, ((((dead γk (k : nat)) : @sProp STT Γ idx) ∗ t1_write idx))%S)]) *)
-    (*                    (* ∗ (Duty(tid1) *) *)
-    (*                    (*        (IDENTTGT:=@SRA.in_subG Γ Σ sub _ _IDENTTGT) *) *)
-    (*                    (*        (ARROWRA:=@_ARROWRA STT Γ Σ TLRAS) *) *)
-    (*                    (*        [(k, 0, ((((dead γk (k : nat)) : @sProp STT Γ idx) ∗ t1_write idx))%S)]) *) *)
-    (*                    ∗ ◇[k](2, 1) ∗ (live γk (k : nat) (1/2)) *)
-    (*                 ) *)
-    (*               ∗ *)
-    (*               ((own_thread tid2) ∗ (duty (v:=idx) inlp tid2 [])) *)
-    (*         ). *)
 
     Lemma init_sat E (H_TID : tid1 <> tid2) :
       (OwnM (memory_init_resource Client01.gvs))
@@ -424,7 +385,6 @@ Section SPEC.
       iMod (Lifetime.alloc k) as "[%γk LIVE]".
       iPoseProof (Lifetime.pending_split with "[LIVE]") as "[LIVE1 LIVE2]".
       { iEval (rewrite Qp.div_2). iFrame. }
-      (* iEval (unfold gvs, SCMem.init_gvars; ss) in "PTS". *)
 
       unfold WSim.initial_prop.
       iDestruct "INIT" as "(INIT0 & INIT1 & INIT2 & INIT3 & INIT4 & INIT5)".
@@ -479,7 +439,6 @@ Section SPEC.
         unfold client01Inv. red_tl_all. rewrite red_syn_until_tpromise.
         iSplitR. eauto. iSplitR. auto. simpl. iLeft. red_tl_all. iFrame.
         ss. clarify.
-        (* TODO : make lemmas *)
         Local Transparent SCMem.alloc.
         unfold SCMem.alloc in Heq0. ss. des_ifs.
         Local Opaque SCMem.alloc.

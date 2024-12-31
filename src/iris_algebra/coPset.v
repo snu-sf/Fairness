@@ -39,9 +39,6 @@ Section coPset.
   Qed.
   Canonical Structure coPsetR := discreteR coPset coPset_ra_mixin.
 
-  (* Global Instance coPset_cmra_discrete : CmraDiscrete coPsetR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
-
   Lemma coPset_ucmra_mixin : UcmraMixin coPset.
   Proof. split; [done | | done]. intros X. by rewrite coPset_op left_id_L. Qed.
   Canonical Structure coPsetUR := Ucmra coPset coPset_ucmra_mixin.
@@ -110,9 +107,6 @@ Section coPset_disj.
     - intros [X1|] [X2|]; coPset_disj_solve.
   Qed.
   Canonical Structure coPset_disjR := discreteR coPset_disj coPset_disj_ra_mixin.
-
-  (* Global Instance coPset_disj_cmra_discrete : CmraDiscrete coPset_disjR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Lemma coPset_disj_ucmra_mixin : UcmraMixin coPset_disj.
   Proof. split; try apply _ || done. intros [X|]; coPset_disj_solve. Qed.

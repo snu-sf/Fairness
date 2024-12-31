@@ -21,9 +21,6 @@ Section nat.
   Qed.
   Canonical Structure natR : cmra := discreteR nat nat_ra_mixin.
 
-  (* Global Instance nat_cmra_discrete : CmraDiscrete natR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
-
   Local Instance nat_unit_instance : Unit nat := 0.
   Lemma nat_ucmra_mixin : UcmraMixin nat.
   Proof. split; apply _ || done. Qed.
@@ -72,9 +69,6 @@ Section max_nat.
     - intros [x]. by rewrite max_nat_op Nat.max_id.
   Qed.
   Canonical Structure max_natR : cmra := discreteR max_nat max_nat_ra_mixin.
-
-  (* Global Instance max_nat_cmra_discrete : CmraDiscrete max_natR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Lemma max_nat_ucmra_mixin : UcmraMixin max_nat.
   Proof. split; try apply _ || done. intros [x]. done. Qed.
@@ -125,9 +119,6 @@ Section min_nat.
   Qed.
   Canonical Structure min_natR : cmra := discreteR min_nat min_nat_ra_mixin.
 
-  (* Global Instance min_nat_cmra_discrete : CmraDiscrete min_natR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
-
   Global Instance min_nat_core_id (x : min_nat) : CoreId x.
   Proof. by constructor. Qed.
 
@@ -171,9 +162,6 @@ Section positive.
   Qed.
   Canonical Structure positiveR : cmra := discreteR positive pos_ra_mixin.
 
-  (* Global Instance pos_cmra_discrete : CmraDiscrete positiveR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
-
   Global Instance pos_cancelable (x : positive) : Cancelable x.
   Proof. intros y z ??. eapply Pos.add_reg_l. done. Qed.
   Global Instance pos_id_free (x : positive) : IdFree x.
@@ -204,9 +192,6 @@ Section Z.
     - by exists 0.
   Qed.
   Canonical Structure ZR : cmra := discreteR Z Z_ra_mixin.
-
-  (* Global Instance Z_cmra_discrete : CmraDiscrete ZR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Local Instance Z_unit_instance : Unit Z := 0.
   Lemma Z_ucmra_mixin : UcmraMixin Z.
@@ -262,9 +247,6 @@ Section max_Z.
 
   Global Instance max_Z_cmra_total : CmraTotal max_ZR.
   Proof. intros x. eauto. Qed.
-
-  (* Global Instance max_Z_cmra_discrete : CmraDiscrete max_ZR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
 
   Global Instance max_Z_core_id (x : max_Z) : CoreId x.
   Proof. by constructor. Qed.

@@ -46,20 +46,11 @@ Proof.
   intros [a Hrel]. eapply auth_view_rel_raw_valid, Hrel.
 Qed.
 
-(* Global Instance auth_view_rel_discrete {A : ucmra} :
-  CmraDiscrete A → ViewRelDiscrete (auth_view_rel (A:=A)).
-Proof.
-  intros ? a b [??]; split.
-  - by apply cmra_discrete_included_iff_0.
-  - by apply cmra_discrete_valid_iff_0.
-Qed. *)
-
 (** * Definition and operations on the authoritative camera *)
 (** The type [auth] is not defined as a [Definition], but as a [Notation].
 This way, one can use [auth A] with [A : Type] instead of [A : ucmra], and let
 canonical structure search determine the corresponding camera instance. *)
 Notation auth A := (view (A:=A) (B:=A) auth_view_rel_raw).
-(* Definition authO (A : ucmra) : Type := viewO (A:=A) (B:=A) auth_view_rel. *)
 Definition authR (A : ucmra) : cmra := viewR (A:=A) (B:=A) auth_view_rel.
 Definition authUR (A : ucmra) : ucmra := viewUR (A:=A) (B:=A) auth_view_rel.
 
@@ -90,33 +81,15 @@ Section auth.
   Implicit Types q : frac.
   Implicit Types dq : dfrac.
 
-  (* Global Instance auth_auth_ne dq : NonExpansive (@auth_auth A dq).
-  Proof. rewrite /auth_auth. apply _. Qed. *)
   Global Instance auth_auth_proper dq : Proper ((=) ==> (=)) (@auth_auth A dq).
   Proof. rewrite /auth_auth. apply _. Qed.
-  (* Global Instance auth_frag_ne : NonExpansive (@auth_frag A).
-  Proof. rewrite /auth_frag. apply _. Qed. *)
   Global Instance auth_frag_proper : Proper ((=) ==> (=)) (@auth_frag A).
   Proof. rewrite /auth_frag. apply _. Qed.
 
-  (* Global Instance auth_auth_dist_inj : Inj2 (=) (dist n) (dist n) (@auth_auth A).
-  Proof. rewrite /auth_auth. apply _. Qed. *)
   Global Instance auth_auth_inj : Inj2 (=) (=) (=) (@auth_auth A).
   Proof. rewrite /auth_auth. apply _. Qed.
-  (* Global Instance auth_frag_dist_inj : Inj (dist n) (dist n) (@auth_frag A).
-  Proof. rewrite /auth_frag. apply _. Qed. *)
   Global Instance auth_frag_inj : Inj (=) (=) (@auth_frag A).
   Proof. rewrite /auth_frag. apply _. Qed.
-
-  (* Global Instance auth_ofe_discrete : TypeDiscrete A → OfeDiscrete (authO A).
-  Proof. apply _. Qed. *)
-  (* Global Instance auth_auth_discrete dq a :
-    Discrete a → Discrete (ε : A) → Discrete (●{dq} a).
-  Proof. rewrite /auth_auth. apply _. Qed. *)
-  (* Global Instance auth_frag_discrete a : Discrete a → Discrete (◯ a).
-  Proof. rewrite /auth_frag. apply _. Qed. *)
-  (* Global Instance auth_cmra_discrete : CmraDiscrete A → CmraDiscrete (authR A).
-  Proof. apply _. Qed. *)
 
   (** Operation *)
   Lemma auth_auth_dfrac_op dq1 dq2 a : ●{dq1 ⋅ dq2} a = ●{dq1} a ⋅ ●{dq2} a.

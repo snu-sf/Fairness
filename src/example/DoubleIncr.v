@@ -98,11 +98,9 @@ Section SPEC.
     red_tl_all; rewrite red_syn_tgt_interp_as; ss.
     iIntros "(#MEM & #LINVx & PCx & #LINVy & PCy & DUTY & PCs & PCsx & PCsy & PTa & PTb) POST". rred2r.
     (* Preprocessing *)
-    (* iPoseProof (pcs_decr _ _ 1 with "PCs") as "> [PCs2 PCs]"; first by apply le_n. rred2r. *)
     iApply (wpsim_yieldR2 with "[DUTY PCs]"). 3:iFrame. all: try lia. iIntros "DUTY _ PCs"; rred2r; ss.
     iApply wpsim_tauR; rred2r.
     (* Lock x *)
-    (* iApply (wpsim_yieldR2 with "[DUTY PCs]"). 3:iFrame. all: try lia. iIntros "DUTY CRED"; rred2r. *)
     iPoseProof (pcs_decr _ _ 1 with "PCs") as "> [PCs2 PCs]"; first by apply le_n.
     iApply (Spinlock_lock_spec with "[] [PCx DUTY PCs2 PCsx] [-]").
     { pose proof md_N_Spinlock_x_state_tgt. set_solver. }
@@ -115,7 +113,6 @@ Section SPEC.
     (* Yield *)
     iPoseProof (pc_split _ _ 1 with "PCx") as "[PCx2 PCx]".
     iPoseProof (pc_drop _ 1 _ _ 8 with "[PCx2]") as "> PCx2"; ss.
-    (* iPoseProof (pcs_decr _ _ 1 with "PCs") as "> [PCax PCs]"; first by apply le_n. *)
     iPoseProof (pcs_cons_fold _ 0 _ 1 with "[PCx2 PCs]") as "PCs"; iFrame.
     iApply (wpsim_yieldR2 with "[DUTY PCs]"). 3: iFrame; simpl; iFrame. all: try lia.
     iIntros "DUTY _ PCs"; rred2r; ss. iApply wpsim_tauR; rred2r.

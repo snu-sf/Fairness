@@ -95,7 +95,6 @@ Section SPEC.
       | _ => GEx γo tt
       end)%S.
 
-  (* TODO: accuratly defining this might be a bit annoying. *)
   Definition stack_push_au n γs val (Q : τ{Φ,2+n}%stype) : sProp (1+n) :=
     (AU <{ ∃∃ St, ⤉ EStack n γs St }> @ n, (⊤∖↑elimN), ∅ <{ ∀∀ (_ : unit), ⤉ EStack n γs (val::St), COMM Q}>)%S.
 

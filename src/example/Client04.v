@@ -118,7 +118,6 @@ Section SPEC.
   Context {HasMEMRA: @GRA.inG memRA Γ}.
   Context {HasOneShotsNat : @GRA.inG (OneShots.t nat) Γ}.
   Context {HasAuthExclsNat3 : @GRA.inG (AuthExcls.t (nat * nat * nat)) Γ}.
-  (* Context {HasAuthExclsNat : @GRA.inG (AuthExcls.t nat) Γ}. *)
 
   Ltac red_tl_all := red_tl; red_tl_memra; red_tl_oneshots; red_tl_authexcls.
 
@@ -151,39 +150,6 @@ Section SPEC.
             )
         )
     )%S.
-
-  (* Definition client04Inv n γi γi1 γi2 γs1 γs2 γm1 γm2 : sProp (1+n) :=
-    (∃ (tid1 tid2 γ1 γ2 k1 k2 : τ{nat, 1+n}),
-      (⤉ ● γs1 (tid1, k1, γ1))
-      ∗ (⤉ ● γs2 (tid2, k2, γ2))
-      ∗ (⤉ ● γm1 (tid1, k2, γ2))
-      ∗ (⤉ ● γm2 (tid2, k1, γ1))
-      ∗ (((⤉ (X ↦ 0))
-          ∗ (⤉ live γi tt 1)
-          ∗ (Duty (tid1) []) ∗ (Duty (tid2) [])
-          ∗ (⤉ ○ γs1 (tid1, k1, γ1)) ∗ (⤉ ○ γs2 (tid2, k2, γ2)))
-        ∨
-        ((⤉ dead γi tt)
-          ∗
-          ((⤉ (X ↦ 1))
-            ∗ (⤉ dead γi1 tt)
-            ∗ (⤉ live γ2 tt 1)
-            ∗ (⤉ (○ γs1 (tid1, k1, γ1)))
-            ∗ (Duty (tid1) []) 
-            ∗ (((Duty (tid2) [(k2, 0, dead γ2 tt : sProp (1+n))])
-                ∗ (◇[k2](2, 1))
-                ∗ (⤉ (○ γs2 (tid2, k2, γ2))))
-              ∨ (⤉ (○ γm2 (tid2, k1, γ1))))
-          ∨
-          ((⤉ (X ↦ 2))
-            ∗ (⤉ dead γi2 tt)
-            ∗ (⤉ live γ1 tt 1)
-            ∗ (⤉ ○ γs2 (tid2, k2, γ2))
-            ∗ (Duty (tid2) [])
-            ∗ (((Duty (tid1) [(k1, 0, dead γ1 tt : sProp (1+n))])
-                ∗ (◇[k1](2, 1))
-                ∗ (⤉ ○ γs1 (tid1, k1, γ1)))
-              ∨ (⤉ (○ γm1 (tid1, k2, γ2)))))))))%S. *)
 
   (** Simulation proof. *)
   Lemma Client04_load_loop_spec1
@@ -1239,7 +1205,6 @@ Section SPEC.
 
     Variable tid1 tid2 : thread_id.
     Let init_ord := Ord.O.
-    (* Let init_ord := layer 2 1. *)
     Let init_ths :=
           (NatStructsLarge.NatMap.add
              tid1 tt

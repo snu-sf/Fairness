@@ -105,10 +105,8 @@ Section SPEC.
   Context {TLRAS : TLRAs STT Γ Σ}.
 
   Context {HasMEMRA: @GRA.inG memRA Γ}.
-  (* Context {HasAuthExcls : @GRA.inG (AuthExcls.t nat) Γ}. *)
   Context {HasOneShots : @GRA.inG (OneShots.t unit) Γ}.
   Context {HasAuthExcls2 : @GRA.inG (AuthExcls.t (nat * nat)) Γ}.
-  (* Context {HasExcls : @GRA.inG (Excls.t unit) Γ}. *)
 
   Ltac red_tl_all := red_tl; red_tl_memra; red_tl_authexcls; red_tl_excls; red_tl_oneshots.
 
@@ -116,24 +114,10 @@ Section SPEC.
 
   (* Namespace for Client05 invariants. *)
   Definition N_Client05 : namespace := (nroot .@ "Client05").
-  (* Definition N_t2_write : namespace := (nroot .@ "t2_write"). *)
   Context (spinlockN : namespace) `{DISJ: (↑N_state_tgt :coPset) ## (↑spinlockN : coPset)}.
 
   Lemma mask_disjoint_N_Client05_state_tgt : (↑N_Client05 : coPset) ## (↑N_state_tgt : coPset).
   Proof. apply ndot_ne_disjoint. ss. Qed.
-  (* Lemma mask_disjoint_N_t2_write_state_tgt : (↑N_t2_write : coPset) ## (↑N_state_tgt : coPset).
-  Proof. apply ndot_ne_disjoint. ss. Qed.
-  Lemma mask_disjoint_N_Client05_N_t2_write : (↑N_Client05 : coPset) ## (↑N_t2_write : coPset).
-  Proof. apply ndot_ne_disjoint. ss. Qed. *)
-
-  (* Definition t2_write n : sProp n :=
-    syn_inv n N_t2_write (D ↦ 1)%S. *)
-
-  (* Global Instance t2_write_persistent n : Persistent (⟦t2_write n, n⟧).
-  Proof.
-    unfold Persistent. iIntros "H". unfold t2_write. rewrite red_syn_inv.
-    iDestruct "H" as "#H". auto.
-  Qed. *)
 
   Definition client05Inv n γw : sProp n := (((△ γw (1/2)) ∗ (D ↦ 0)) ∨ ((▿ γw tt) ∗ (D ↦ 1)))%S.
 
@@ -330,7 +314,6 @@ Section SPEC.
     Lemma init_sat E (H_TID : tid1 <> tid2) :
       (OwnM (memory_init_resource Client05.gvs))
         ∗ (OwnM (AuthExcls.rest_ra (gt_dec 0) (0, 0)))
-        (* ∗ (OwnM (Excls.rest_ra (gt_dec 0) tt)) *)
         ∗
         (WSim.initial_prop
            Client05Spec.module Client05.module
@@ -429,18 +412,11 @@ Section SPEC.
       iMod (FUpd_alloc _ _ _ idx spinlockN (spinlockInv idx kw L γl emp%S) with "[PT2 LB LW]") as "SI".
       lia.
       { simpl. unfold spinlockInv. red_tl_all. iExists 0. red_tl. iExists 0. red_tl_all. iFrame. iLeft. iFrame.
-        (* TODO : make lemmas *)
         Local Transparent SCMem.alloc.
         unfold SCMem.alloc in Heq1. ss; des_ifs.
         unfold SCMem.alloc in Heq2; ss; des_ifs.
         Local Opaque SCMem.alloc.
       }
-      (* iMod (FUpd_alloc _ _ _ idx N_SpinlockUse1 (spinlockUse1 idx kw γl γL emp%S 1)
-        with "[WL BS WS]") as "#S1I".
-      lia.
-      { simpl. unfold spinlockUse1. do 2 (red_tl_all; iExists 0). red_tl_all; simpl.
-        iSplitL "BS"; iFrame. iLeft; iFrame.
-      } *)
       iModIntro. iExists γw, kw, γl. red_tl_all.
       rewrite red_syn_tgt_interp_as. unfold isSpinlock.
       red_tl_all; rewrite ! red_syn_inv; simpl. repeat iSplit; auto.

@@ -41,11 +41,6 @@ Definition reservation_map_token {A : cmra} (E : coPset) : reservation_map A :=
   ReservationMap ∅ (CoPset E).
 Global Instance: Params (@reservation_map_data) 2 := {}.
 
-(* Ofe *)
-
-
-(* Global Arguments reservation_mapO : clear implicits. *)
-
 (* Camera *)
 Section cmra.
   Context {A : cmra}.
@@ -53,22 +48,14 @@ Section cmra.
   Implicit Types x y : reservation_map A.
   Implicit Types k : positive.
 
-  (* Global Instance reservation_map_data_ne i : NonExpansive (@reservation_map_data A i).
-  Proof. solve_proper. Qed. *)
   Global Instance reservation_map_data_proper k :
     Proper ((=) ==> (=)) (@reservation_map_data A k).
   Proof. solve_proper. Qed.
-  (* Global Instance reservation_map_data_discrete k a :
-    Discrete a → Discrete (reservation_map_data k a).
-  Proof. intros. apply ReservationMap_discrete; apply _. Qed. *)
-  (* Global Instance reservation_map_token_discrete E : Discrete (@reservation_map_token A E).
-  Proof. intros. apply ReservationMap_discrete; apply _. Qed. *)
 
   Local Instance reservation_map_valid_instance : Valid (reservation_map A) := λ x,
     match reservation_map_token_proj x with
     | CoPset E =>
       ✓ (reservation_map_data_proj x) ∧
-      (* dom (reservation_map_data_proj x) ⊥ E *)
       ∀ i, reservation_map_data_proj x !! i = None ∨ i ∉ E
     | CoPsetBot => False
     end.
@@ -84,7 +71,6 @@ Section cmra.
     valid = λ x, match reservation_map_token_proj x with
                  | CoPset E =>
                    ✓ (reservation_map_data_proj x) ∧
-                   (* dom (reservation_map_data_proj x) ⊥ E *)
                    ∀ i, reservation_map_data_proj x !! i = None ∨ i ∉ E
                  | CoPsetBot => False
                  end := eq_refl _.
@@ -146,14 +132,6 @@ Section cmra.
   Qed.
   Canonical Structure reservation_mapR :=
     Cmra (reservation_map A) reservation_map_cmra_mixin.
-
-  (* Global Instance reservation_map_cmra_discrete :
-    CmraDiscrete A → CmraDiscrete reservation_mapR.
-  Proof.
-    split; first apply _.
-    intros [m [E|]]; rewrite reservation_map_valid_eq reservation_map_valid_eq //=.
-      by intros [?%cmra_discrete_valid ?].
-  Qed. *)
 
   Local Instance reservation_map_empty_instance : Unit (reservation_map A) := ReservationMap ε ε.
   Lemma reservation_map_ucmra_mixin : UcmraMixin (reservation_map A).

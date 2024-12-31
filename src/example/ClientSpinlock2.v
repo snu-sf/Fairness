@@ -119,7 +119,6 @@ Section SIM.
 
   Definition N_ClientSpinlock2 : namespace := (nroot .@ "ClientSpinlock2").
   Definition N_Spinlock : namespace := (nroot .@ "Spinlock").
-  (* Notation E_Spinlock := (↑N_Spinlock : coPset). *)
 
   Lemma md_N_ClientSpinlock2_state_tgt : (↑N_ClientSpinlock2 : coPset) ## (↑N_state_tgt : coPset).
   Proof. apply ndot_ne_disjoint. ss. Qed.
@@ -130,37 +129,6 @@ Section SIM.
   Lemma md_Spinlock_state_tgt : (↑N_Spinlock : coPset) ## (↑N_state_tgt : coPset).
   Proof. apply ndot_ne_disjoint. ss. Qed.
 
-  (* Definition clientSpinlock2_inv n (tid2 : thread_id) (ℓL : nat) (γX γe κs : nat) (κl γκl κw γκw κu γκu : nat) (γr : nat) : sProp n :=
-    (
-      ((○ γX 0) ∗ (D ↦ 0)
-                ∗ (-[κl](0)-◇ (▿ γκl γκw))
-                ∗ (△ γκl (1/2)) ∗ (△ γκw (1/2)) ∗ (△ γκu (1/2))
-                ∗ ⧖[κu, 1/2]
-                ∗ (-[κu](0)-⧖ (▿ γκu 0))
-                ∗ (κu -(0)-◇ κs)
-                ∗ (∃ (ℓl : τ{nat}), ◆[κl, ℓl])
-      )
-      ∨
-        ((○ γX 1) ∗ (D ↦ 0)
-                  ∗ (-[κw](0)-◇ (▿ γκw γκu))
-                  ∗ (△ γκw (1/2)) ∗ (△ γκu (1/2)) ∗ (▿ γκl γκw)
-                  ∗ ⧖[κu, 1/2]
-                  ∗ (-[κu](0)-⧖ (▿ γκu 0))
-                  ∗ (κu -(0)-◇ κs)
-                  ∗ (△ γκu (1/2))
-                  ∗ (∃ (ℓw : τ{nat}), ◆[κw, ℓw] ∗ ⌜ℓw <= ℓL⌝)
-        )
-      ∨
-        ((○ γX 1) ∗ (D ↦ 1)
-                  ∗ (-[κu](0)-◇ (▿ γκu 0))
-                  ∗ (△ γκu (1/2)) ∗ (▿ γκl γκw) ∗ (▿ γκw γκu)
-                  ∗ ⋈[κu] ∗ (κu -(0)-◇ κs)
-                  ∗ (((EX γe tt) ∨ (▿ γr 0)))
-        )
-      ∨
-        ((○ γX 0) ∗ (D ↦ 1)
-                  ∗ (▿ γκl γκw) ∗ (▿ γκw γκu) ∗ (▿ γr 0) ∗ (▿ γκu 0))
-    )%S. *)
   Definition clientSpinlock2_inv n (γl : nat) (κw γκw κu γκu : nat) (γr : nat) : sProp n :=
       (
         ((D ↦ 0)
@@ -171,8 +139,6 @@ Section SIM.
           ∗ (▿ γκw tt)
           ∗ (○ γl (γκu, κu) ∨ ▿ γr tt))
       )%S.
-
-  (* Obligation dependencies: (κl at >= (2 + ℓL) + c) → (κw at 2) → (κu at 2 (=ℓl)) → (κs at >= 3) *)
 
   Lemma ClientSpinlock2_thread1_sim
         tid n

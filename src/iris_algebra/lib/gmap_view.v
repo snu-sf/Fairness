@@ -115,24 +115,11 @@ Section rel.
   Local Lemma gmap_view_rel_unit m : gmap_view_rel m ε.
   Proof. apply: map_Forall_empty. Qed.
 
-  (* Local Lemma gmap_view_rel_discrete :
-    CmraDiscrete V → ViewRelDiscrete gmap_view_rel.
-  Proof.
-    intros ? m f Hrel k [df va] Hk.
-    destruct (Hrel _ _ Hk) as (v & dq & Hm & Hvval & Hvincl).
-    exists v, dq. split; first done.
-    split; first by apply cmra_discrete_valid_iff_0.
-    rewrite -cmra_discrete_included_iff_0. done.
-  Qed. *)
 End rel.
-
-(* Local Existing Instance gmap_view_rel_discrete. *)
 
 (** [gmap_view] is a notation to give canonical structure search the chance
 to infer the right instances (see [auth]). *)
 Notation gmap_view K V := (view (@gmap_view_rel_raw K _ _ V)).
-(* Definition gmap_viewO (K : Type) `{Countable K} (V : cmra) : Type :=
-  viewO (gmap_view_rel K V). *)
 Definition gmap_viewR (K : Type) `{Countable K} (V : cmra) : cmra :=
   viewR (gmap_view_rel K V).
 Definition gmap_viewUR (K : Type) `{Countable K} (V : cmra) : ucmra :=
@@ -152,14 +139,10 @@ Section lemmas.
   Implicit Types (m : gmap K V) (k : K) (q : Qp) (dq : dfrac) (v : V).
 
   Global Instance : Params (@gmap_view_auth) 5 := {}.
-  (* Global Instance gmap_view_auth_ne dq : NonExpansive (gmap_view_auth (K:=K) (V:=V) dq).
-  Proof. solve_proper. Qed. *)
   Global Instance gmap_view_auth_proper dq : Proper ((=) ==> (=)) (gmap_view_auth (K:=K) (V:=V) dq).
   Proof. solve_proper. Qed.
 
   Global Instance : Params (@gmap_view_frag) 6 := {}.
-  (* Global Instance gmap_view_frag_ne k oq : NonExpansive (gmap_view_frag (V:=V) k oq).
-  Proof. solve_proper. Qed. *)
   Global Instance gmap_view_frag_proper k oq : Proper ((=) ==> (=)) (gmap_view_frag (V:=V) k oq).
   Proof. solve_proper. Qed.
 
@@ -564,102 +547,10 @@ Section lemmas.
     CoreId dq → CoreId v → CoreId (gmap_view_frag k dq v).
   Proof. apply _. Qed.
 
-  (* Global Instance gmap_view_cmra_discrete :
-    CmraDiscrete V → CmraDiscrete (gmap_viewR K V).
-  Proof. apply _. Qed. *)
-
   Global Instance gmap_view_frag_mut_is_op dq dq1 dq2 k v v1 v2 :
     IsOp dq dq1 dq2 →
     IsOp v v1 v2 →
     IsOp' (gmap_view_frag k dq v) (gmap_view_frag k dq1 v1) (gmap_view_frag k dq2 v2).
   Proof. rewrite /IsOp' /IsOp => -> ->. apply gmap_view_frag_op. Qed.
 End lemmas.
-
-(** Functor *)
-(* Program Definition gmap_viewURF (K : Type) `{Countable K} (F : rFunctor) : urFunctor := {|
-  urFunctor_car A _ B _ := gmap_viewUR K (rFunctor_car F A B);
-  urFunctor_map A1 _ A2 _ B1 _ B2 _ fg :=
-    viewO_map (rel:=gmap_view_rel K (rFunctor_car F A1 B1))
-              (rel':=gmap_view_rel K (rFunctor_car F A2 B2))
-              (gmapO_map (K:=K) (rFunctor_map F fg))
-              (gmapO_map (K:=K) (prodO_map cid (rFunctor_map F fg)))
-|}.
-Next Obligation.
-  intros K ?? F A1 ? A2 ? B1 ? B2 ? f g Hfg.
-  apply viewO_map_ne.
-  - apply gmapO_map_ne, rFunctor_map_ne. done.
-  - apply gmapO_map_ne. apply prodO_map_ne; first done.
-    apply rFunctor_map_ne. done.
-Qed.
-Next Obligation.
-  intros K ?? F A ? B ? x; simpl in *. rewrite -{2}(view_map_id x).
-  apply (view_map_ext _ _ _ _)=> y.
-  - rewrite /= -{2}(map_fmap_id y).
-    apply map_fmap_equiv_ext=>k ??.
-    apply rFunctor_map_id.
-  - rewrite /= -{2}(map_fmap_id y).
-    apply map_fmap_equiv_ext=>k [df va] ?.
-    split; first done. simpl.
-    apply rFunctor_map_id.
-Qed.
-Next Obligation.
-  intros K ?? F A1 ? A2 ? A3 ? B1 ? B2 ? B3 ? f g f' g' x; simpl in *.
-  rewrite -view_map_compose.
-  apply (view_map_ext _ _ _ _)=> y.
-  - rewrite /= -map_fmap_compose.
-    apply map_fmap_equiv_ext=>k ??.
-    apply rFunctor_map_compose.
-  - rewrite /= -map_fmap_compose.
-    apply map_fmap_equiv_ext=>k [df va] ?.
-    split; first done. simpl.
-    apply rFunctor_map_compose.
-Qed.
-Next Obligation.
-  intros K ?? F A1 ? A2 ? B1 ? B2 ? fg; simpl.
-  (* [apply] does not work, probably the usual unification probem (Coq #6294) *)
-  apply: view_map_cmra_morphism; [apply _..|]=> m f.
-  intros Hrel k [df va] Hf. move: Hf.
-  rewrite !lookup_fmap.
-  destruct (f !! k) as [[df' va']|] eqn:Hfk; rewrite Hfk; last done.
-  simpl=>[= <- <-].
-  specialize (Hrel _ _ Hfk). simpl in Hrel.
-  destruct Hrel as (v & dq & Hlookup & Hval & Hincl).
-  eexists (rFunctor_map F fg v), dq.
-  rewrite Hlookup. split; first done. split.
-  - split; first by apply Hval. simpl. apply: cmra_morphism_valid. apply Hval.
-  - destruct Hincl as [[[fdq fv]|] Hincl].
-    + apply: Some_includedN_mono. rewrite -Some_op in Hincl.
-      apply (inj _) in Hincl. rewrite -pair_op in Hincl.
-      exists (fdq, rFunctor_map F fg fv). rewrite -pair_op.
-      split; first apply Hincl. rewrite -cmra_morphism_op.
-      simpl. f_equiv. apply Hincl.
-    + exists None. rewrite right_id in Hincl. apply (inj _) in Hincl.
-      rewrite right_id. f_equiv. split; first apply Hincl.
-      simpl. f_equiv. apply Hincl.
-Qed.
-
-Global Instance gmap_viewURF_contractive (K : Type) `{Countable K} F :
-  rFunctorContractive F → urFunctorContractive (gmap_viewURF K F).
-Proof.
-  intros ? A1 ? A2 ? B1 ? B2 ? f g Hfg.
-  apply viewO_map_ne.
-  - apply gmapO_map_ne. apply rFunctor_map_contractive. done.
-  - apply gmapO_map_ne. apply prodO_map_ne; first done.
-    apply rFunctor_map_contractive. done.
-Qed.
-
-Program Definition gmap_viewRF (K : Type) `{Countable K} (F : rFunctor) : rFunctor := {|
-  rFunctor_car A _ B _ := gmap_viewR K (rFunctor_car F A B);
-  rFunctor_map A1 _ A2 _ B1 _ B2 _ fg :=
-    viewO_map (rel:=gmap_view_rel K (rFunctor_car F A1 B1))
-              (rel':=gmap_view_rel K (rFunctor_car F A2 B2))
-              (gmapO_map (K:=K) (rFunctor_map F fg))
-              (gmapO_map (K:=K) (prodO_map cid (rFunctor_map F fg)))
-|}.
-Solve Obligations with apply gmap_viewURF.
-
-Global Instance gmap_viewRF_contractive (K : Type) `{Countable K} F :
-  rFunctorContractive F → rFunctorContractive (gmap_viewRF K F).
-Proof. apply gmap_viewURF_contractive. Qed. *)
-
 Global Typeclasses Opaque gmap_view_auth gmap_view_frag.

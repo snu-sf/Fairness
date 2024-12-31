@@ -427,7 +427,6 @@ Section SIM.
   Variable monok: nat.
   Variable tk_mono: nat.
   Variable wm_mono: nat.
-  (* Variable wo_mono: nat. *)
 
   Definition N_Ticketlock_w : namespace := (nroot .@ "Ticketlock_w").
   Lemma mask_disjoint_ticketlock_state_tgt : ↑N_Ticketlock_w ## (↑N_state_tgt : coPset).
@@ -630,8 +629,6 @@ Section SIM.
     iDestruct "I" as "(_ & % & %I1 & _ & [% I2])". clarify. red_tl_all; simpl.
     iDestruct "I2" as "(MONB & _ & _ & _ & _ & #LINK & MY2)".
     unfold maps_to.
-    (* do 2 iDestruct "I" as "[% I]". iDestruct "I" as "[_ [%I1 [%I2 [_ [_ I]]]]]".
-    do 3 iDestruct "I" as "[% I]". iDestruct "I" as "[MB _]". *)
     iPoseProof (black_white_compare with "MONO MONB") as "%LE".
     hexploit (tkqueue_val_range_l I1 _ FIND). i. inv LE; auto. lia. iSplit. auto.
     exploit tkqueue_inv_unique. eauto. eauto. inv I1. clarify. inv QUEUE. apply FIND0. i; clarify.
@@ -1304,7 +1301,6 @@ Section SIM.
           iDestruct "H2" as "(H1 & H2 & H3 & H4 & H5 & H6 & H7)". iFrame.
         }
         iDestruct "I1" as "[I1 I2]". lred2r.
-        (* iEval (unfold natmap_prop_sum) in "I2". lred2r. *)
 
         iApply (wpsim_fairL with "[I2]").
         { i. ss. instantiate (1:= (NatSet.elements (key_set tks2'))). des_ifs.
@@ -1728,7 +1724,6 @@ Section SIM.
         unfold wimpl. ii. rr in H. rr. des. rr in H. des. exists m; auto. rr in H. exists now. auto.
       }
       iClear "MEM5".
-      (* iAssert (ticket_lock_inv_state false V' false tks2)%I with "[ST]" as "ST". iFrame. *)
       iMod ("TI_CLOSE" with "[TKS MEM ST I3 I4 HOLD]") as "_".
       { unfold ticket_lock_inv. do 9 (iEval red_tl; iExists _). red_tl_all.
         iSplitL "TKS". auto. iSplitL "MEM". auto. iSplitL "ST". unfold ticket_lock_inv_state. red_tl_all. auto.

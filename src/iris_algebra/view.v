@@ -175,22 +175,6 @@ Section cmra.
   Qed.
   Canonical Structure viewR := Cmra (view rel) view_cmra_mixin.
 
-  (* Global Instance view_auth_discrete dq a :
-    Discrete a → Discrete (ε : B) → Discrete (●V{dq} a : view rel).
-  Proof. intros. apply View_discrete; apply _. Qed.
-  Global Instance view_frag_discrete b :
-    Discrete b → Discrete (◯V b : view rel).
-  Proof. intros. apply View_discrete; apply _. Qed.
-  Global Instance view_cmra_discrete :
-    OfeDiscrete A → CmraDiscrete B → ViewRelDiscrete rel →
-    CmraDiscrete viewR.
-  Proof.
-    split; [apply _|]=> -[[[dq ag]|] b]; rewrite view_valid_eq view_valid_eq /=.
-    - rewrite -cmra_discrete_valid_iff.
-      setoid_rewrite <-(discrete_iff _ ag). naive_solver.
-    - naive_solver.
-  Qed. *)
-
   Local Instance view_empty_instance : Unit (view rel) := View ε ε.
   Lemma view_ucmra_mixin : UcmraMixin (view rel).
   Proof.
@@ -509,41 +493,3 @@ Proof.
   intros. unfold view_map. f_equal; [|done].
   apply option_fmap_ext => a; rewrite /prod_map /=. f_equal. rewrite (agree_map_ext f1 f2); done.
 Qed.
-(* Global Instance view_map_ne {A A' B B' : Type}
-    {rel : A → B → Prop} {rel' : A' → B' → Prop}
-    (f : A → A') (g : B → B') `{Hf : !NonExpansive f, Hg : !NonExpansive g} :
-  NonExpansive (view_map (rel':=rel') (rel:=rel) f g).
-Proof.
-  intros [o1 bf1] [o2 bf2] [??]; split; simpl in *; [|by apply Hg].
-  apply option_fmap_ne; [|done]=> pag1 pag2 ?.
-  apply prod_map_ne; [done| |done]. by apply agree_map_ne.
-Qed. *)
-
-(* Definition viewO_map {A A' B B' : Type}
-    {rel : A → B → Prop} {rel' : A' → B' → Prop}
-    (f : A -n> A') (g : B -n> B') : viewO rel -n> viewO rel' :=
-  OfeMor (view_map f g). *)
-(* Lemma viewO_map_ne {A A' B B' : Type}
-    {rel : A → B → Prop} {rel' : A' → B' → Prop} :
-  NonExpansive2 (viewO_map (rel:=rel) (rel':=rel')).
-Proof.
-  intros f f' Hf g g' Hg [[[p ag]|] bf]; split=> //=.
-  do 2 f_equiv. by apply agreeO_map_ne.
-Qed. *)
-
-(* Lemma view_map_cmra_morphism {A A' B B'}
-    {rel : view_rel A B} {rel' : view_rel A' B'}
-    (f : A → A') (g : B → B') `{!CmraMorphism g} :
-  (∀ a b, rel a b → rel' (f a) (g b)) →
-  CmraMorphism (view_map (rel:=rel) (rel':=rel') f g).
-Proof.
-  intros Hrel. split.
-  - rewrite !view_valid_eq /=. intros [[[p ag]|] bf];
-      [|naive_solver eauto using cmra_morphism_valid].
-    intros [? [a' [Hag ?]]]. split; [done|]. exists (f a'). split; [|by auto].
-    by rewrite -agree_map_to_agree -Hag.
-  - intros [o bf]. rewrite /view_map /= view_pcore_eq.
-    (repeat f_equal); simpl; by rewrite cmra_morphism_core.
-  - intros [[[dq1 ag1]|] bf1] [[[dq2 ag2]|] bf2];
-      try apply View_proper=> //=; try by rewrite cmra_morphism_op.
-Qed. *)

@@ -34,19 +34,10 @@ Section frac_auth.
   Context {A : cmra}.
   Implicit Types a b : A.
 
-  (* Global Instance frac_auth_auth_ne : NonExpansive (@frac_auth_auth A).
-  Proof. solve_proper. Qed. *)
   Global Instance frac_auth_auth_proper : Proper ((=) ==> (=)) (@frac_auth_auth A).
   Proof. solve_proper. Qed.
-  (* Global Instance frac_auth_frag_ne q : NonExpansive (@frac_auth_frag A q).
-  Proof. solve_proper. Qed. *)
   Global Instance frac_auth_frag_proper q : Proper ((=) ==> (=)) (@frac_auth_frag A q).
   Proof. solve_proper. Qed.
-
-  (* Global Instance frac_auth_auth_discrete a : Discrete a → Discrete (●F a).
-  Proof. intros; apply auth_auth_discrete; [apply Some_discrete|]; apply _. Qed.
-  Global Instance frac_auth_frag_discrete q a : Discrete a → Discrete (◯F{q} a).
-  Proof. intros; apply auth_frag_discrete, Some_discrete; apply _. Qed. *)
 
   Lemma frac_auth_valid a : ✓ a → ✓ (●F a ⋅ ◯F a).
   Proof. intros. by apply auth_both_valid_2. Qed.
@@ -65,9 +56,6 @@ Section frac_auth.
   Lemma frac_auth_included_total `{!CmraTotal A} q a b :
     ✓ (●F a ⋅ ◯F{q} b) → b ≼ a.
   Proof. intros. by eapply Some_included_total, frac_auth_included. Qed.
-  (* Lemma frac_auth_included_total `{!CmraDiscrete A, !CmraTotal A} q a b :
-    ✓ (●F a ⋅ ◯F{q} b) → b ≼ a.
-  Proof. intros. by eapply Some_included_total, frac_auth_included. Qed. *)
 
   Lemma frac_auth_auth_valid a : ✓ (●F a) ↔ ✓ a.
   Proof.
@@ -108,17 +96,3 @@ Section frac_auth.
     intros. by apply auth_update, option_local_update, exclusive_local_update.
   Qed.
 End frac_auth.
-
-(* Definition frac_authURF (F : rFunctor) : urFunctor :=
-  authURF (optionURF (prodRF (constRF fracR) F)).
-
-Global Instance frac_authURF_contractive F :
-  rFunctorContractive F → urFunctorContractive (frac_authURF F).
-Proof. apply _. Qed.
-
-Definition frac_authRF (F : rFunctor) : rFunctor :=
-  authRF (optionURF (prodRF (constRF fracR) F)).
-
-Global Instance frac_authRF_contractive F :
-  rFunctorContractive F → rFunctorContractive (frac_authRF F).
-Proof. apply _. Qed. *)

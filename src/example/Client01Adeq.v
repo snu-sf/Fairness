@@ -98,7 +98,6 @@ Module Client01Correct.
   (* Additional initial resources. *)
   Local Definition init_res :=
     (GRA.embed (memory_init_resource Client01.gvs)).
-          (* ⋅ (GRA.embed  *)
 
   Arguments wpsim_bind_top {_ _ _ _ _ _}.
   Arguments wpsim_wand {_ _ _ _ _ _}.

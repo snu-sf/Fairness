@@ -16,7 +16,6 @@ Module Spinlock.
     Notation locked := (SCMem.val_nat 1).
 
     Definition lock :
-      (* ktree (threadE void unit) SCMem.val unit *)
       ktree (threadE ident state) SCMem.val unit
       :=
       fun x =>
@@ -26,25 +25,9 @@ Module Spinlock.
              if (b : bool) then Ret (inr tt) else Ret (inl tt)) tt.
 
     Definition unlock :
-      (* ktree (threadE void unit) SCMem.val unit *)
       ktree (threadE ident state) SCMem.val unit
       :=
       fun x => (OMod.call "store" (x, unlocked)).
-
-    (** TODO : more rules for module composition. *)
-    (* Definition omod : Mod.t := *)
-    (*   Mod.mk *)
-    (*     (* tt *) *)
-    (*     (Mod.st_init Client) *)
-    (*     (Mod.get_funs [("lock", Mod.wrap_fun lock); *)
-    (*                    ("unlock", Mod.wrap_fun unlock)]) *)
-    (* . *)
-
-    (* Definition module gvs : Mod.t := *)
-    (*   OMod.close *)
-    (*     (omod) *)
-    (*     (SCMem.mod gvs) *)
-    (* . *)
 
   End SPINLOCK.
 

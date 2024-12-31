@@ -99,7 +99,6 @@ Module Lifetime.
       iPoseProof (@OwnM_unit _ _ H) as "H".
       iPoseProof (OwnM_Upd_set with "H") as "> H0".
       { eapply FiniteMap.singleton_alloc. instantiate (1:=(Some (Some (t↑)), OneShot.pending unit 1)).
-        (* repeat rewrite unfold_prod_add. repeat rewrite URA.unit_idl. repeat rewrite URA.unit_id. *)
         rewrite unfold_prod_wf. ss. split.
         { ur. ss. }
         { apply OneShot.pending_one_wf. }

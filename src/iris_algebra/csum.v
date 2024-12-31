@@ -53,16 +53,6 @@ Proof.
   - apply H1.
   - apply H2.
 Qed.
-(* Global Instance csum_map_cmra_ne {A A' B B' : Type} n :
-  Proper ((dist n ==> dist n) ==> (dist n ==> dist n) ==> dist n ==> dist n)
-         (@csum_map A A' B B').
-Proof. intros f f' Hf g g' Hg []; destruct 1; constructor; by apply Hf || apply Hg. Qed.
-Definition csumO_map {A A' B B'} (f : A -n> A') (g : B -n> B') :
-  csumO A B -n> csumO A' B' :=
-  OfeMor (csum_map f g).
-Global Instance csumO_map_ne A A' B B' :
-  NonExpansive2 (@csumO_map A A' B B').
-Proof. by intros n f f' Hf g g' Hg []; constructor. Qed. *)
 
 Section cmra.
 Context {A B : cmra}.
@@ -156,13 +146,6 @@ Proof.
     + by exists CsumBot, CsumBot; destruct y1, y2; inversion_clear Hx'.
 Qed.
 Canonical Structure csumR := Cmra (csum A B) csum_cmra_mixin.
-
-(* Global Instance csum_cmra_discrete :
-  CmraDiscrete A → CmraDiscrete B → CmraDiscrete csumR.
-Proof.
-  split; first apply _.
-  by move=>[a|b|] HH /=; try apply cmra_discrete_valid.
-Qed. *)
 
 Global Instance Cinl_core_id a : CoreId a → CoreId (Cinl a).
 Proof. rewrite /CoreId /=. intros ->. done. Qed.
@@ -275,27 +258,3 @@ Proof.
   - move=> [a|b|]=>//=; rewrite -cmra_morphism_pcore; by destruct pcore.
   - intros [xa|ya|] [xb|yb|]=>//=; by rewrite cmra_morphism_op.
 Qed.
-
-(* Program Definition csumRF (Fa Fb : rFunctor) : rFunctor := {|
-  rFunctor_car A _ B _ := csumR (rFunctor_car Fa A B) (rFunctor_car Fb A B);
-  rFunctor_map A1 _ A2 _ B1 _ B2 _ fg := csumO_map (rFunctor_map Fa fg) (rFunctor_map Fb fg)
-|}.
-Next Obligation.
-  by intros Fa Fb A1 ? A2 ? B1 ? B2 ? n f g Hfg; apply csumO_map_ne; try apply rFunctor_map_ne.
-Qed.
-Next Obligation.
-  intros Fa Fb A ? B ? x. rewrite /= -{2}(csum_map_id x).
-  apply csum_map_ext=>y; apply rFunctor_map_id.
-Qed.
-Next Obligation.
-  intros Fa Fb A1 ? A2 ? A3 ? B1 ? B2 ? B3 ? f g f' g' x. rewrite /= -csum_map_compose.
-  apply csum_map_ext=>y; apply rFunctor_map_compose.
-Qed.
-
-Global Instance csumRF_contractive Fa Fb :
-  rFunctorContractive Fa → rFunctorContractive Fb →
-  rFunctorContractive (csumRF Fa Fb).
-Proof.
-  intros ?? A1 ? A2 ? B1 ? B2 ? n f g Hfg.
-  by apply csumO_map_ne; try apply rFunctor_map_contractive.
-Qed. *)

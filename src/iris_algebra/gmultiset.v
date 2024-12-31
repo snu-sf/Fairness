@@ -42,9 +42,6 @@ Section gmultiset.
 
   Canonical Structure gmultisetR := discreteR (gmultiset K) gmultiset_ra_mixin.
 
-  (* Global Instance gmultiset_cmra_discrete : CmraDiscrete gmultisetR.
-  Proof. apply discrete_cmra_discrete. Qed. *)
-
   Lemma gmultiset_ucmra_mixin : UcmraMixin (gmultiset K).
   Proof.
     split; [done | | done]. intros X.
@@ -83,14 +80,6 @@ Section gmultiset.
     repeat (rewrite multiplicity_difference || rewrite multiplicity_disj_union).
     lia.
   Qed.
-
-  (* Lemma big_opMS_singletons X :
-    ([^op mset] x ∈ X, {[+ x +]}) = X.
-  Proof.
-    induction X as [|x X IH] using gmultiset_ind.
-    - rewrite big_opMS_empty. done.
-    - unfold_leibniz. rewrite big_opMS_disj_union // big_opMS_singleton IH //.
-  Qed. *)
 
 End gmultiset.
 

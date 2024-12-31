@@ -30,19 +30,10 @@ Section excl_auth.
   Context {A : Type}.
   Implicit Types a b : A.
 
-  (* Global Instance excl_auth_auth_ne : NonExpansive (@excl_auth_auth A).
-  Proof. solve_proper. Qed. *)
   Global Instance excl_auth_auth_proper : Proper ((=) ==> (=)) (@excl_auth_auth A).
   Proof. solve_proper. Qed.
-  (* Global Instance excl_auth_frag_ne : NonExpansive (@excl_auth_frag A).
-  Proof. solve_proper. Qed. *)
   Global Instance excl_auth_frag_proper : Proper ((=) ==> (=)) (@excl_auth_frag A).
   Proof. solve_proper. Qed.
-
-  (* Global Instance excl_auth_auth_discrete a : Discrete a → Discrete (●E a).
-  Proof. intros; apply auth_auth_discrete; [apply Some_discrete|]; apply _. Qed.
-  Global Instance excl_auth_frag_discrete a : Discrete a → Discrete (◯E a).
-  Proof. intros; apply auth_frag_discrete, Some_discrete; apply _. Qed. *)
 
   Lemma excl_auth_valid a : ✓ (●E a ⋅ ◯E a).
   Proof. by rewrite auth_both_valid. Qed.
@@ -66,17 +57,3 @@ Section excl_auth.
     intros. by apply auth_update, option_local_update, exclusive_local_update.
   Qed.
 End excl_auth.
-
-(* Definition excl_authURF (F : oFunctor) : urFunctor :=
-  authURF (optionURF (exclRF F)).
-
-Global Instance excl_authURF_contractive F :
-  oFunctorContractive F → urFunctorContractive (excl_authURF F).
-Proof. apply _. Qed.
-
-Definition excl_authRF (F : oFunctor) : rFunctor :=
-  authRF (optionURF (exclRF F)).
-
-Global Instance excl_authRF_contractive F :
-  oFunctorContractive F → rFunctorContractive (excl_authRF F).
-Proof. apply _. Qed. *)

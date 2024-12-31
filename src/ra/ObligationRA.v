@@ -3,7 +3,6 @@ From Fairness Require Import WFLibLarge Mod Optics.
 From Fairness Require Import PCM IProp IPM IPropAux.
 From Fairness Require Import NatMapRALarge MonotoneRA RegionRA.
 Require Import Coq.Classes.RelationClasses.
-(* Require Import Coq.Logic.PropExtensionality. *)
 From Fairness Require Import Axioms.
 Require Import Program.
 From Fairness Require Import FairnessRA IndexedInvariants.
