@@ -119,7 +119,6 @@ Section STS.
 
   Definition state {id} {R} := itree (@eventE id) R.
 
-  (* Context {Ident: ID}. *)
   Variable id: ID.
   Variable wf: WF.
 
@@ -145,11 +144,9 @@ End STS.
 Module Beh.
 
 Definition t {R}: Type := @Tr.t R -> Prop.
-(* Definition improves {R} (src tgt: @t R): Prop := tgt <1= src. *)
 
 Section BEHAVES.
 
-  (* Context {Ident: ID}. *)
   Variable id: ID.
   Variable wf: WF.
 

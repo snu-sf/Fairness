@@ -39,8 +39,6 @@ Notation id_sum A B := (sum A B) (only parsing).
 
 Section EVENT.
 
-  (* Context {Ident: ID}. *)
-
   Definition fmap (id: ID) := id -> Flag.t.
 
   Variant eventE {id: ID}: Type -> Type :=
@@ -72,7 +70,6 @@ Section EVENTS.
   Variant cE: Type -> Type :=
   | Yield: cE unit
   | GetTid: cE thread_id
-  (* | Spawn (fn: fname) (args: list Val): cE unit *)
   .
 
   (* sE is just state monad *)
