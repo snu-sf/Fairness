@@ -33,10 +33,7 @@ End ITreeNotations2.
 
 
 Export SumNotations.
-(* Export ITreeNotations. *)
 Export Monads.
-(* Export MonadNotation. *)
-(* Export FunctorNotation. *)
 Export CatNotations.
 Export ITreeNotations2.
 Open Scope cat_scope.
@@ -92,9 +89,6 @@ Notation "tau;; t2" := (Tau t2)
 
 
 
-(*** COPIED FROM MASTER BRANCH. REMOVE LATER ***)
-(*** COPIED FROM MASTER BRANCH. REMOVE LATER ***)
-(*** COPIED FROM MASTER BRANCH. REMOVE LATER ***)
 Lemma eutt_eq_bind : forall E R U (t1 t2: itree E U) (k1 k2: U -> itree E R), t1 ≈ t2 -> (forall u, k1 u ≈ k2 u) -> ITree.bind t1 k1 ≈ ITree.bind t2 k2.
 Proof.
   intros.
@@ -102,16 +96,11 @@ Proof.
   intros ? ? ->. apply H0.
 Qed.
 Ltac f_equiv := first [eapply eutt_eq_bind|eapply eqit_VisF|Morphisms.f_equiv].
-(* eapply eqit_bind'| *)
 
 #[export] Hint Rewrite @bind_trigger : itree.
 #[export] Hint Rewrite @tau_eutt : itree.
 #[export] Hint Rewrite @bind_tau : itree.
 
-(* Tactic Notation "irw" "in" ident(H) := repeat (autorewrite with itree in H; cbn in H). *)
-(* Tactic Notation "irw" := repeat (autorewrite with itree; cbn). *)
-
-(*** TODO: IDK why but (1) ?UNUSNED is needed (2) "fold" tactic does not work. WHY????? ***)
 Ltac fold_eutt :=
   repeat multimatch goal with
          | [ H: eqit eq true true ?A ?B |- ?UNUSED ] =>
@@ -130,7 +119,6 @@ Proof.
 Qed.
 
 Lemma map_vis {E R1 R2 X} (e: E X) (k: X -> itree E R1) (f: R1 -> R2) :
-  (* (f <$> (Vis e k)) ≅ Vis e (fun x => f <$> (k x)). *)
   ITree.map f (Vis e k) = Vis e (fun x => f <$> (k x)).
 Proof.
   f.
@@ -141,8 +129,6 @@ Qed.
 
 
 
-
-(*** TODO: move to SIRCommon ***)
 Lemma unfold_interp_mrec :
 forall (D E : Type -> Type) (ctx : forall T : Type, D T -> itree (D +' E) T)
   (R : Type) (t : itree (D +' E) R), interp_mrec ctx t = _interp_mrec ctx (observe t).
@@ -185,11 +171,6 @@ Proof. i. f. eapply bind_trigger. Qed.
 Lemma bind_bind : forall (E : Type -> Type) (R S T : Type) (s : itree E R) (k : R -> itree E S) (h : S -> itree E T),
     x <- (x <- s;; k x);; h x = r <- s;; x <- k r;; h x.
 Proof. i. f. eapply bind_bind. Qed.
-
-(* Lemma unfold_bind : *)
-(* forall (E : Type -> Type) (R S : Type) (t : itree E R) (k : R -> itree E S), *)
-(* x <- t;; k x = ITree._bind k (fun t0 : itree E R => x <- t0;; k x) (observe t). *)
-(* Proof. i. f. apply unfold_bind. Qed. *)
 
 Lemma interp_mrec_bind:
   forall (D E : Type -> Type) (ctx : forall T : Type, D T -> itree (D +' E) T)
@@ -257,14 +238,12 @@ Lemma interp_tau:
 .
 Proof. i. f. apply interp_tau. Qed.
 
-(*** Original name: interp_state_trigger_eqit ***)
 Lemma interp_state_trigger:
   forall (E F : Type -> Type) (R S : Type) (e : E R) (f : forall T : Type, E T -> stateT S (itree F) T) (s : S),
     interp_state f (ITree.trigger e) s = x <- f R e s;; (tau;; Ret x)
 .
 Proof. i. f. apply interp_state_trigger_eqit. Qed.
 
-(*** TODO: interp_trigger_eqit does not exist. report to itree people? ***)
 Lemma interp_trigger:
   forall (E F : Type -> Type) (R : Type) (e : E R) (f : E ~> itree F),
     interp f (ITree.trigger e) = x <- f R e;; tau;; Ret x
@@ -286,12 +265,9 @@ Proof.
   unfold resum, ReSum_id, id_, Id_IFun. rewrite bind_ret_r. ss.
 Qed.
 
-(*** TODO: I don't want "F" here, but it is technically needed. Report it to itree people? ***)
 Lemma interp_mrec_miss:
-  (* forall (D E F: Type -> Type) `{F -< E} (ctx : forall T : Type, D T -> itree (D +' E) T) (U : Type) (a : F U), *)
   forall (D E F: Type -> Type) `{F -< E} (ctx : forall T : Type, D T -> itree (D +' E) T) (U : Type) (a : F U),
     interp_mrec ctx (trigger a) = x <- (trigger a);; tau;; Ret x
-(* (trigger a) >>= tauK *)
 .
 Proof.
   i. rewrite unfold_interp_mrec. cbn.
@@ -349,7 +325,6 @@ Ltac iby1 TAC :=
     ]
 .
 
-(* Ltac grind :=  f; repeat (f_equiv; ii; des_ifs_safe); f. *)
 
 Ltac ired := repeat (try rewrite bind_bind; try rewrite bind_ret_l; try rewrite bind_ret_r; try rewrite bind_tau; try rewrite bind_vis;
                      (* try rewrite interp_vis; *)
@@ -370,11 +345,7 @@ Ltac ired := repeat (try rewrite bind_bind; try rewrite bind_ret_l; try rewrite 
                      try rewrite interp_state_ret;
                      cbn
                     ).
-(* first [eapply eqit_VisF|f_equiv] *)
-(* Ltac grind := repeat (ired; f; repeat (f_equiv; match goal with [ |- context[going] ] => fail | _ => idtac end; ii; des_ifs_safe); f). *)
-(* Ltac grind := repeat (ired; f; repeat (Morphisms.f_equiv; ii; des_ifs_safe); f). *)
 Ltac grind := repeat (ired; match goal with
-                            (* | [ |- tau;; ?a = tau;; ?b ] => do 2 f_equal *)
                             | [ |- (go (TauF ?a)) = (go (TauF ?b)) ] => do 2 f_equal
                             | [ |- (_ <- _ ;; _) = (_ <- _ ;; _) ] => Morphisms.f_equiv; apply func_ext_dep; i
                             | _ => idtac

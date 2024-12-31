@@ -80,7 +80,6 @@ Section BIGOP.
 
   Import Syntax SyntaxI.
 
-  (* Maybe we can make Syntax as an instance for big_opMs. *)
   Definition syn_big_sepM
              (n : index) {K} {H1 : EqDecision K} {H2 : Countable K}
              {A} (I : @gmap K H1 H2 (sType.interp A (sProp n)))
@@ -667,9 +666,6 @@ Section WSATS.
     induction m; ss.
   Qed.
 
-  (* Definition syn_wsats n : sProp (S n) := *)
-  (*   syn_big_sepL1 n (baseT nat) (seq 0 n) (fun m => lifts (syn_wsat m) (n - (S m))). *)
-
   Fixpoint lifts_seps (p : forall n, sProp (S n)) n : sProp n :=
     match n with
     | O => emp%S
@@ -766,10 +762,6 @@ Section OBLIG.
     unfold syn_arrows_sat_list. rewrite red_tl_sat_list. f_equal.
     extensionalities t. apply red_syn_obl_arrow.
   Qed.
-
-  (* Check (⇣ Ord.t)%stype. *)
-  (* Check (⇣ (nat + nat)%type)%stype. *)
-  (* Fail Check (⇣ (sum_tid id_tgt_type))%stype. *)
 
   Definition syn_arrows_sat n : sProp (S n) :=
     (∃ (l : τ{ listT ((⇣(nat + id_tgt_type)) * (⇣nat) * (⇣Ord.t) * (⇣Qp) * (⇣nat) * Φ)%stype, S n }),
@@ -1154,21 +1146,6 @@ Section TRIPLE.
 
   Import Atom.
 
-  (* Definition syn_triple_gen *)
-  (*            n tid (P : sProp n) {RV} (Q : RV -> sProp n) (E1 E2 : coPset) *)
-  (*   : forall {R_src R_tgt : Type} (TERM : R_src -> R_tgt -> sProp n), bool -> bool -> itree srcE R_src -> itree tgtE RV -> ktree tgtE RV R_tgt -> sProp n *)
-  (*   := *)
-  (*   fun R_src R_tgt TERM ps pt itr_src code ktr_tgt => *)
-  (*     ( *)
-  (*       (* let N := (S n) in *) *)
-  (*       let I0 := (fun ths ims imt sts stt => ((syn_default_I n ths ims imt sts stt) ∗ (⟨syn_wsat_auth n⟩ ∗ syn_wsats n ∗ syn_ownes n ∅))%S) *)
-  (*      in *)
-  (*      let I1 := (fun ths ims imt sts stt => ((syn_default_I_past tid n ths ims imt sts stt) ∗ (⟨syn_wsat_auth n⟩ ∗ syn_wsats n ∗ syn_ownes n ∅))%S) *)
-  (*      in *)
-  (*      let I2 := (fun ths im_src im_tgt st_src st_tgt E => (syn_default_I_past tid n ths im_src im_tgt st_src st_tgt ∗ (⟨syn_wsat_auth n⟩ ∗ syn_wsats n ∗ syn_ownes n E))) *)
-  (*      in *)
-  (*      Syntax.striple_format tid I0 I1 I2 P Q E1 E2 TERM ps pt itr_src code ktr_tgt)%S. *)
-
   Definition syn_term_cond n (tid : thread_id) (R_term : Type) : R_term -> R_term -> sProp n :=
     fun rs rt => ((⟨ow_ths tid⟩ ∗ ⟨obl_duty inlp tid []⟩) ∗ (⌜rs = rt⌝))%S.
 
@@ -1180,19 +1157,6 @@ Section TRIPLE.
     extensionalities rs rt. unfold syn_term_cond. red_tl. f_equal.
   Qed.
 
-  (* Definition syn_triple_gen *)
-  (*            n tid (P : sProp (S n)) {RV} (Q : RV -> sProp (S n)) (E1 E2 : coPset) *)
-  (*   : forall {R_term : Type}, bool -> bool -> itree srcE R_term -> itree tgtE RV -> ktree tgtE RV R_term -> sProp (S n) *)
-  (*   := *)
-  (*   fun R_term ps pt itr_src code ktr_tgt => *)
-  (*     (let N := (S n) in *)
-  (*       let I0 := (fun ths ims imt sts stt => ((syn_default_I N ths ims imt sts stt) ∗ (⟨syn_wsat_auth N⟩ ∗ syn_wsats N ∗ ⟨owne ⊤⟩))%S) *)
-  (*      in *)
-  (*      let I1 := (fun ths ims imt sts stt => ((syn_default_I_past tid N ths ims imt sts stt) ∗ (⟨syn_wsat_auth N⟩ ∗ syn_wsats N ∗ ⟨owne ⊤⟩))%S) *)
-  (*      in *)
-  (*      let I2 := (fun ths im_src im_tgt st_src st_tgt E => (syn_default_I_past tid N ths im_src im_tgt st_src st_tgt ∗ (⟨syn_wsat_auth N⟩ ∗ syn_wsats N ∗ ⟨owne E⟩))) *)
-  (*      in *)
-  (*      Syntax.striple_format tid I0 I1 I2 P Q E1 E2 (fun rs rt => ⤉ (syn_term_cond n tid R_term rs rt)) ps pt itr_src code ktr_tgt)%S. *)
 
   Definition syn_triple_gen
              n δ tid (P : sProp (S (δ + n))) {RV} (Q : RV -> sProp (S (δ + n))) (E1 E2 : coPset)
@@ -1312,114 +1276,9 @@ Section TRIPLE.
     apply red_syn_triple_gen.
   Qed.
 
-  (* Lemma red_syn_triple_gen *)
-  (*       n tid (P : sProp (S n)) RV (Q : RV -> sProp (S n)) E1 E2 *)
-  (*       R_term ps pt itr_src code (ktr_tgt : ktree tgtE RV R_term) *)
-  (*   : *)
-  (*   ⟦syn_triple_gen n tid P Q E1 E2 ps pt itr_src code ktr_tgt, S n⟧ *)
-  (*   = *)
-  (*     triple_gen (S n) n tid ⟦P, S n⟧ (fun rv => ⟦Q rv, S n⟧) E1 E2 ps pt itr_src code ktr_tgt. *)
-  (* Proof. *)
-  (*   unfold syn_triple_gen, triple_gen. red_tl. unfold triple_format. *)
-  (*   apply f_equal. extensionalities rr. apply f_equal. extensionalities gr. *)
-  (*   apply f_equal. *)
-  (*   match goal with *)
-  (*   | [ |- (?A -∗ _)%I = (?B -∗ _)%I] => replace A with B *)
-  (*   end. *)
-  (*   match goal with *)
-  (*   | [ |- (_ -∗ ?C)%I = (_ -∗ ?D)%I] => replace C with D *)
-  (*   end. *)
-  (*   auto. *)
-  (*   - unfold wpsim. *)
-  (*     apply f_equal. extensionalities ths. *)
-  (*     apply f_equal. extensionalities im_src. apply f_equal. extensionalities im_tgt. *)
-  (*     apply f_equal. extensionalities st_src. apply f_equal. extensionalities st_tgt. *)
-  (*     red_tl. simpl. red_tl. rewrite red_syn_default_I_past. rewrite red_syn_wsats. *)
-  (*     f_equal. f_equal. *)
-  (*     + symmetry. apply (red_isim_eq_1 (S n)). *)
-  (*     + apply (red_isim_eq_2 _ (S n)). *)
-  (*     + apply (red_isim_eq_2 _ (S n)). *)
-  (*     + symmetry. *)
-  (*       extensionalities r_src r_tgt ths1 im_src1 im_tgt1. *)
-  (*       extensionalities st_src1 st_tgt1. *)
-  (*       red_tl. rewrite red_syn_default_I_past. rewrite red_syn_wsats. ss. *)
-  (*   - apply f_equal. extensionalities rv. apply f_equal. *)
-  (*     unfold wpsim. *)
-  (*     apply f_equal. extensionalities ths. *)
-  (*     apply f_equal. extensionalities im_src. apply f_equal. extensionalities im_tgt. *)
-  (*     apply f_equal. extensionalities st_src. apply f_equal. extensionalities st_tgt. *)
-  (*     red_tl. simpl. red_tl. rewrite red_syn_default_I_past. rewrite red_syn_wsats. *)
-  (*     f_equal. f_equal. *)
-  (*     + symmetry. apply (red_isim_eq_1 (S n)). *)
-  (*     + apply (red_isim_eq_2 _ (S n)). *)
-  (*     + apply (red_isim_eq_2 _ (S n)). *)
-  (*     + symmetry. *)
-  (*       extensionalities r_src r_tgt ths1 im_src1 im_tgt1. *)
-  (*       extensionalities st_src1 st_tgt1. *)
-  (*       red_tl. rewrite red_syn_default_I_past. rewrite red_syn_wsats. ss. *)
-  (* Qed. *)
-
-  (* Definition syn_atomic_triple *)
-  (*            tid n (E : coPset) *)
-  (*            (P : sProp (S n)) {RV} (code : itree tgtE RV) (Q : RV -> sProp (S n)) *)
-  (*   : sProp (S n) *)
-  (*   := *)
-  (*   (∀ (R_term : τ{metaT}) *)
-  (*      (* (TERM : τ{(R_src -> R_tgt -> Φ)%stype, n}) *) *)
-  (*      (ps pt : τ{bool}) *)
-  (*      (itr_src : τ{codeT id_src_type st_src_type R_term, S n}) *)
-  (*      (ktr_tgt : τ{(RV -> codeT id_tgt_type st_tgt_type R_term)%stype, S n}), *)
-  (*       (syn_triple_gen n tid P Q E E ps pt itr_src code ktr_tgt))%S. *)
-
-  (* Lemma red_syn_atomic_triple *)
-  (*       tid n (E : coPset) *)
-  (*       (P : sProp (S n)) RV (code : itree tgtE RV) (Q : RV -> sProp (S n)) *)
-  (*   : *)
-  (*   ⟦syn_atomic_triple tid n E P code Q, S n⟧ *)
-  (*   = *)
-  (*     atomic_triple tid n E ⟦P, S n⟧ code (fun v => ⟦Q v, S n⟧). *)
-  (* Proof. *)
-  (*   unfold syn_atomic_triple, atomic_triple. red_tl. *)
-  (*   apply f_equal. extensionalities R_term. red_tl. *)
-  (*   apply f_equal. extensionalities ps. red_tl. *)
-  (*   apply f_equal. extensionalities pt. red_tl. *)
-  (*   apply f_equal. extensionalities itr_src. red_tl. *)
-  (*   apply f_equal. extensionalities itr_tgt. red_tl. *)
-  (*   apply red_syn_triple_gen. *)
-  (* Qed. *)
-
-  (* Definition syn_non_atomic_triple *)
-  (*            tid n (E : coPset) *)
-  (*            (P : sProp (S n)) {RV} (code : itree tgtE RV) (Q : RV -> sProp (S n)) *)
-  (*   : sProp (S n) *)
-  (*   := *)
-  (*   (∀ (R_term : τ{metaT}) *)
-  (*      (ps pt : τ{bool}) *)
-  (*      (itr_src : τ{codeT id_src_type st_src_type R_term}) *)
-  (*      (ktr_tgt : τ{(RV -> codeT id_tgt_type st_tgt_type R_term)%stype, S n}), *)
-  (*       (syn_triple_gen n tid P Q E ⊤ ps pt (trigger Yield;;; itr_src) code ktr_tgt))%S. *)
-
-  (* Lemma red_syn_non_atomic_triple *)
-  (*       tid n (E : coPset) *)
-  (*       (P : sProp (S n)) RV (code : itree tgtE RV) (Q : RV -> sProp (S n)) *)
-  (*   : *)
-  (*   ⟦syn_non_atomic_triple tid n E P code Q, S n⟧ *)
-  (*   = *)
-  (*     non_atomic_triple tid n E ⟦P, S n⟧ code (fun v => ⟦Q v, S n⟧). *)
-  (* Proof. *)
-  (*   unfold syn_non_atomic_triple, non_atomic_triple. red_tl. *)
-  (*   apply f_equal. extensionalities R_term. red_tl. *)
-  (*   apply f_equal. extensionalities ps. red_tl. *)
-  (*   apply f_equal. extensionalities pt. red_tl. *)
-  (*   apply f_equal. extensionalities itr_src. red_tl. *)
-  (*   apply f_equal. extensionalities itr_tgt. red_tl. *)
-  (*   apply red_syn_triple_gen. *)
-  (* Qed. *)
-
   (** LAT *)
   Section syn_atomic_update_def.
 
-  (* TODO: ideally should be Tele *)
   Context {TA TB : Type}.
   Context (n : nat).
   Implicit Types
@@ -1433,7 +1292,6 @@ Section TRIPLE.
   Definition syn_atomic_update Eo Ei α β POST : sProp (S n) :=
     (=|S n|={Eo, Ei}=> ∃ x : τ{TA,S n}, α x ∗
           (∀ y : τ{TB,S n}, β x y =|S n|={Ei, Eo}=∗ POST x y))%S.
-  (* TODO: Seal? *)
   End syn_atomic_update_def.
 
   Definition syn_LAT_ind {TA TB TP: Type}

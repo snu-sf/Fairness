@@ -119,7 +119,6 @@ Section STATE.
 
   Let lift_rel_mon (rr0 rr1: rel)
       (MON: forall R_src R_tgt Q ps pt itr_src itr_tgt,
-          (* bi_entails *)
           (rr0 R_src R_tgt Q ps pt itr_src itr_tgt)
             ⊢
             (#=> rr1 R_src R_tgt Q ps pt itr_src itr_tgt))
@@ -180,7 +179,6 @@ Section STATE.
            (∃ (Q: R_src -> R_tgt -> iProp)
               (EQ: QQ = (fun r_src r_tgt ths im_src im_tgt st_src st_tgt =>
                            (INV1 ths im_src im_tgt st_src st_tgt) ∗ (Q r_src r_tgt))),
-               (* (ibot7 R_src R_tgt Q ps pt itr_src itr_tgt) *)
                (False)
                  ∗
                  (INV1 ths im_src im_tgt st_src st_tgt))%I)
@@ -1883,40 +1881,24 @@ Section TRIPLES.
               (Q rv) -∗ wpsim n tid E2 rr gr (@term_cond m tid R_term) ps true itr_src (ktr_tgt rv))
           -∗
           wpsim n tid E1 rr gr (@term_cond m tid R_term) ps pt itr_src (code >>= ktr_tgt))%I.
-          (* wpsim n tid E1 rr gr (fun rs rt => prop m (TERM rs rt)) ps pt itr_src (code >>= ktr_tgt))%I. *)
 
   Definition atomic_triple
              tid n m (E : coPset) (P : iProp) {RV} (code : itree tgtE RV) (Q : RV -> iProp)
     : iProp
     :=
-    (* (∀ R_src R_tgt (TERM : R_src -> R_tgt -> Vars n) ps pt *)
     (∀ R_term ps pt
        (itr_src : itree srcE R_term)
        (ktr_tgt : RV -> itree tgtE R_term),
         triple_gen n m tid P Q E E ps pt itr_src code ktr_tgt)%I.
-  (* (P) *)
-  (*   -∗ *)
-  (*   (∀ (rv : RV), *)
-  (*       (Q rv) -∗ wpsim n tid E rr gr TERM ps true itr_src (ktr_tgt rv)) *)
-  (*   -∗ *)
-  (*   wpsim n tid E rr gr TERM ps pt itr_src (code >>= ktr_tgt))%I. *)
 
   Definition non_atomic_triple
              tid n m (E : coPset) (P : iProp) {RV} (code : itree tgtE RV) (Q : RV -> iProp)
     : iProp
     :=
-    (* (∀ R_src R_tgt (TERM : R_src -> R_tgt -> Vars n) ps pt *)
     (∀ R_term ps pt
        (itr_src : itree srcE R_term)
        (ktr_tgt : RV -> itree tgtE R_term),
         triple_gen n m tid P Q E ⊤ ps pt (trigger Yield;;; itr_src) code ktr_tgt)%I.
-        (* triple_gen (S n) (m:=n) tid P Q E ⊤ TERM ps pt (trigger Yield;;; itr_src) code ktr_tgt)%I. *)
-      (* (P) *)
-      (*   -∗ *)
-      (*   (∀ (rv : RV), *)
-      (*       (Q rv) -∗ wpsim n tid ⊤ rr gr TERM ps true (trigger Yield;;; itr_src) (ktr_tgt rv)) *)
-      (*   -∗ *)
-      (*   wpsim n tid E rr gr TERM ps pt (trigger Yield;;; itr_src) (code >>= ktr_tgt))%I. *)
 
   (* For syntactic encoding. *)
   Definition triple_format {Form : Type} {intpF : Form -> iProp}
@@ -1932,7 +1914,6 @@ Section TRIPLES.
     forall R_src R_tgt (TERM: R_src -> R_tgt -> Form), bool -> bool -> itree srcE R_src -> itree tgtE RV -> (ktree tgtE RV R_tgt) -> iProp
     :=
     fun R_src R_tgt TERM ps pt itr_src code ktr_tgt =>
-      (* (∀ (rr gr : rel), *)
       (∀ rr gr,
           let INV :=
             (fun ths ims imt sts stt => intpF (I0 ths ims imt sts stt))
@@ -1983,7 +1964,6 @@ Section TRIPLES.
 
   (** LAT. *)
   Section atomic_update_def.
-  (* TODO: ideally should be [tele] *)
   Context {TA TB : Type}.
   Implicit Types
     (Eo Ei : coPset) (* outer/inner masks *)
@@ -1992,23 +1972,12 @@ Section TRIPLES.
     (POST : TA → TB → iProp) (* post-condition *)
   .
 
-  (* TODO: Reuse the following from [iris.bi.lib.atomic] with all the
-    sweet typeclass instances, tactics, and abort for free.
-    Probably requires adding [atomic_update] as an atom to the syntax,
-    or implementing fixpoints in the syntax level, which is not ideal.
-  *)
-  (* Definition atomic_update n Eo Ei α β POST : iProp :=
-    @atomic_update
-      iProp (iProp_bi_fupd_FUpd (S n) True) TA TB
-      Eo Ei α β POST. *)
   (** atomic_update without abort, so no need for fixpoint *)
   Definition atomic_update n Eo Ei α β POST : iProp :=
     =|S n|={Eo, Ei}=> ∃ x, α x ∗
           (∀ y, β x y =|S n|={Ei, Eo}=∗ POST x y).
-  (* TODO: Seal? *)
   End atomic_update_def.
 
-  (* TODO: make masks fully generic *)
   Definition LAT_ind {TA TB TP}
             tid n (E : coPset)
             {RV}
@@ -2033,7 +2002,6 @@ End TRIPLES.
 
 (** For triples. *)
 Ltac iStartTriple := iIntros (? ? ? ? ? ? ?).
-(* Ltac iStartLAT := iIntros (? ? ? ? ?). *)
 
 Notation "'[@' tid , n , E '@]' { P } code { v , Q }" :=
   (atomic_triple tid (S n) n E P code (fun v => Q))

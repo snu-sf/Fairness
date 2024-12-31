@@ -7,12 +7,7 @@ Require Import SetoidList.
 Require Import SetoidPermutation.
 Require Import Lists.List.
 Require Import Lia.
-From Fairness Require Import
-  Mod
-  FairSim
-  Concurrency
-  FIFOSched
-  SchedSim.
+From Fairness Require Import Mod FairSim Concurrency FIFOSched SchedSim.
 From ExtLib Require Import FMapAList.
 
 Section SIM.

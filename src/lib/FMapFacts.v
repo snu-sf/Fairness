@@ -1743,7 +1743,7 @@ Module WProperties_fun (E:DecidableType)(M:WSfun E).
    unfold restrict, filter.
   apply fold_rel with (R:=Equal); try red; auto.
    intros k e i i' H Hii' x.
-   pattern (mem k m2); rewrite Hm2. (* UGLY, see with Matthieu *)
+   pattern (mem k m2); rewrite Hm2.
    destruct mem; rewrite Hii'; auto.
   apply fold_Equal with (eqA:=Equal); auto.
    intros k k' Hk e e' He m m' Hm; simpl in *.

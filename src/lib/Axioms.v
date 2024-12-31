@@ -1,8 +1,6 @@
 Require ClassicalFacts.
 Require FunctionalExtensionality.
-(* Require ChoiceFacts. *)
 Require Coq.Logic.Epsilon.
-(* Require Classical_Prop. *)
 Require Logic.Classical_Pred_Type.
 Require Import Coq.Logic.ProofIrrelevance.
 Require Import Coq.Logic.ClassicalEpsilon.

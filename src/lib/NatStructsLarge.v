@@ -894,7 +894,6 @@ Section NATSET.
 
   Lemma NatSet_In_MapsTo x s : NatSet.In x s <-> NatMap.MapsTo x tt s.
   Proof.
-    (* unfold NatSet.In, NatMap.In, NatMap.Raw.PX.In. i. des. destruct e. ss. *)
     split.
     - i. destruct H. destruct x0. ss.
     - firstorder.

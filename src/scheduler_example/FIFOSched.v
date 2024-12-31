@@ -1,9 +1,7 @@
 From sflib Require Import sflib.
 Require Import Program.
 From ExtLib Require Import FMapAList.
-From Fairness Require Import
-  Mod
-  Concurrency.
+From Fairness Require Import Mod Concurrency.
 Import List.
 Import ListNotations.
 Set Implicit Arguments.

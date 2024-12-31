@@ -7,8 +7,6 @@ From Coq Require Import
   Relations.Operators_Properties.
 Set Implicit Arguments.
 
-(* TODO: definitions copied from Ordinal library *)
-
 Lemma well_founded_irrefl A (R : A -> A -> Prop) (WF : well_founded R) : forall x, ~ R x x.
 Proof. ii. specialize (WF x). induction WF; eauto. Qed.
 

@@ -762,15 +762,6 @@ Section NATSET.
     exfalso. eapply H. econs. ss.
   Qed.
 
-  (*
-  Lemma Empty_nil_neg s : ~ NatSet.Empty s -> NatSet.elements s <> [].
-  Proof.
-    destruct s as [s SORTED]. ii.
-    eapply map_eq_nil in H0. ss. subst.
-    eapply H. ii. eapply InA_nil; eauto.
-  Qed.
-   *)
-  
   Lemma In_NatSetIn x s : In x (NatSet.elements s) -> NatSet.In x s.
   Proof.
     i. exists tt. unfold NatSet.elements, nm_proj1 in *. destruct s as [s SORTED]; ss. clear SORTED.
@@ -789,7 +780,6 @@ Section NATSET.
 
   Lemma NatSet_In_MapsTo x s : NatSet.In x s <-> NatMap.MapsTo x tt s.
   Proof.
-    (* unfold NatSet.In, NatMap.In, NatMap.Raw.PX.In. i. des. destruct e. ss. *)
     split.
     - i. destruct H. destruct x0. ss.
     - firstorder.

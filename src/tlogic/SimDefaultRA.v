@@ -103,7 +103,7 @@ Section INVARIANT.
   Context `{ONESHOTRA: @GRA.inG ArrowShotRA Σ}.
   Context `{ARROWRA: @GRA.inG ArrowRA Σ}.
 
-  (* Works for formulas with index < x. *)
+  (* Works for sProps with index < x. *)
   Definition fairI x : iProp :=
     (ObligationRA.edges_sat)
       ∗
