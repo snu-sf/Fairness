@@ -5,7 +5,7 @@ This artifact contains Coq development for the paper *Lilo: A Higher-Order, Rela
 Requirement: `opam` (>=2.0.0). You can run `opam --version` to check if `opam` is installed. You will need at least version 2.0.0. If `opam` is not already installed, follow instructions at: https://opam.ocaml.org/doc/Install.html
 - Create and initialize a new opam switch
 ```
-opam switch create . ocaml-base-compiler.4.14.2
+opam switch create . ocaml-base-compiler.4.14.2 --no-install
 eval $(opam env)
 ```
 - Install dependencies with opam
